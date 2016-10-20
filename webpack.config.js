@@ -51,6 +51,7 @@ module.exports = {
       path.resolve(__dirname, 'public'),
       path.resolve(__dirname, 'public/client'),
       path.resolve(__dirname, 'public/client/styles'),
+      path.resolve(__dirname, 'public/client/components'),
       path.resolve(__dirname, 'public/lib')
     ]
   },
