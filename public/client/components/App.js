@@ -1,5 +1,4 @@
-// var React = require('React');
-
+import React from 'react';
 
 class App extends React.Component {
 
@@ -8,13 +7,12 @@ class App extends React.Component {
   }
 
   render() {
-    // return (
-      // <div>
-      //   Hello world      
-      // </div>
-    // );
+    return (
+      <div>
+        Hello world      
+      </div>
+    );
   }
 }
 
-window.App = App;
-module.exports = App;
+export default App;
