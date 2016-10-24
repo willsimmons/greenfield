@@ -1,4 +1,6 @@
 import React from 'react';
+import NavBar from 'NavBar';
+import Player from 'Player';
 
 class App extends React.Component {
 
@@ -9,7 +11,8 @@ class App extends React.Component {
   render() {
     return (
       <div>
-        Hello world      
+        <NavBar />
+        <Player />
       </div>
     );
   }
