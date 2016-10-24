@@ -13,8 +13,10 @@
     "postinstall": "curl -s https://raw.githubusercontent.com/reactorcore/pomander/master/bin/install | bash"
   },
   "dependencies": {
+    "body-parser": "^1.15.2",
     "bootstrap": "^4.0.0-alpha.2",
     "jquery": "^2.2.1",
+    "mongoose": "^4.6.5",
     "react": "^0.14.7",
     "react-dom": "^0.14.7",
     "react-router": "^2.0.0",
