@@ -3,7 +3,7 @@ var webpack = require('webpack');
 
 module.exports = {
   context: path.resolve(__dirname, 'public/client'),
-  entry: './app',
+  entry: 'app',
 
   output: {
     path: path.resolve(__dirname, 'public/dist'),
@@ -34,7 +34,7 @@ module.exports = {
       },
       {
         loader: 'babel-loader',
-        test: /\.jsx?$/,
+        test: /\.js?$/,
         exclude: /node_modules|bower_components|compiled|dist/,
         query: {
           presets: ['es2015', 'react'],
