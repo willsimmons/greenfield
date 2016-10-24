@@ -3,7 +3,7 @@ var webpack = require('webpack');
 
 module.exports = {
   context: path.resolve(__dirname, 'public/client'),
-  entry: 'app',
+  entry: 'index',
 
   output: {
     path: path.resolve(__dirname, 'public/dist'),
