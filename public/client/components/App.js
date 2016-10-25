@@ -1,6 +1,6 @@
 import React from 'react';
 import NavBar from 'NavBar';
-import Player from 'Player';
+import Recorder from 'Recorder';
 
 class App extends React.Component {
 
@@ -13,7 +13,7 @@ class App extends React.Component {
       <div>
         <NavBar />
         <div className="centerDiv">
-          <Player />
+          <Recorder />
         </div>
       </div>
     );

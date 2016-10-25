@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from 'style';
 
-const Player = () => (
-  <div className="player">
+const Recorder = () => (
+  <div className="recorder">
     <div className="controls">
       <div className="round-button">
         <div className="round-button-circle">
@@ -26,4 +26,4 @@ const Player = () => (
   </div>
 );
 
-export default Player;
+export default Recorder;
