@@ -1,4 +1,7 @@
 import React from 'react';
+import NavBar from 'NavBar';
+import Recorder from 'Recorder';
+
 
 class App extends React.Component {
 
@@ -9,7 +12,8 @@ class App extends React.Component {
   render() {
     return (
       <div>
-        Hello world      
+        <NavBar />
+        { this.props.children }
       </div>
     );
   }
