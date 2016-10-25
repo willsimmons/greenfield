@@ -84,6 +84,13 @@ body {
     font-weight: bold;
     text-decoration: none;
 }
+#play {
+	margin-top: -0.5em;
+	margin-left: 0.1em;
+	text-align: center;
+	color: black;
+  font-size: 1.5em;
+}
 
 .meta {
 	text-align: center;

@@ -2,7 +2,9 @@ import React from 'react';
 import styles from 'style';
 
 const Recorder = () => (
+
   <div className="recorder">
+    <h1>Recorder</h1>
     <div className="controls">
       <div className="round-button">
         <div className="round-button-circle">
@@ -13,7 +15,7 @@ const Recorder = () => (
       <button name="stop">Stop</button>
       <br></br>
       <br></br>
-      <button name="record">Other Action</button>
+      <button name="otherAction">Other Action</button>
     </div>
     <div className="meta">
       <label for="title">Title</label><br></br>

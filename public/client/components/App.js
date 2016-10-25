@@ -2,6 +2,7 @@ import React from 'react';
 import NavBar from 'NavBar';
 import Recorder from 'Recorder';
 
+
 class App extends React.Component {
 
   constructor(props) {
@@ -12,9 +13,7 @@ class App extends React.Component {
     return (
       <div>
         <NavBar />
-        <div className="centerDiv">
-          <Recorder />
-        </div>
+        { this.props.children }
       </div>
     );
   }
