@@ -20,6 +20,7 @@
     "react": "^0.14.7",
     "react-dom": "^0.14.7",
     "react-router": "^2.0.0",
+    "request": "^2.76.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
@@ -38,6 +39,7 @@
     "mocha": "2.3.3",
     "sinon": "1.17.3",
     "style-loader": "^0.13.1",
+    "supertest": "^2.0.1",
     "webpack": "^1.12.13",
     "webpack-dev-server": "^1.16.2"
   }
