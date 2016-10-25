@@ -12,7 +12,9 @@ class App extends React.Component {
     return (
       <div>
         <NavBar />
-        <Player />
+        <div className="centerDiv">
+          <Player />
+        </div>
       </div>
     );
   }
