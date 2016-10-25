@@ -18,6 +18,3 @@ ReactDOM.render((
 	</Router>
 
 	), document.getElementById('app'));
-
-
-// <IndexRoute component={ Recorder } />

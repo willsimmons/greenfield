@@ -2,6 +2,7 @@ import React from 'react';
 import styles from 'style';
 import { Link } from 'react-router';
 
+
 const NavBar = () => (
 	<div className="nav">
 		<ul>

@@ -2,7 +2,6 @@ import React from 'react';
 import NavBar from 'NavBar';
 import Recorder from 'Recorder';
 
-
 class App extends React.Component {
 
   constructor(props) {
@@ -14,6 +13,7 @@ class App extends React.Component {
       <div>
         <NavBar />
         { this.props.children }
+        </div>
       </div>
     );
   }
