@@ -4,6 +4,7 @@ const express = require('express');
 const request = require('request');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const Promise = require('bluebird');
 
 const app = express();
 
@@ -11,14 +12,35 @@ const kurentoData = {};
 const kurentoUrl = 'http://138.197.196.39:7676/repo/item';
 let kurentoResp;
 
-const requestOptions = {
+let reqPostOptions = {
   url: kurentoUrl,
   method: 'POST',
   json: kurentoData
 };
 
-request(requestOptions, function(err, resp, body) {
-  if (err) { console.error(err, 'bad Kurento POST'); }
+let reqFindOptions = {
+  url: kurentoUrl + '/find',
+  method: 'POST',
+  json: kurentoData
+};
+
+// Set up as helper function
+// When user hits endpoint, pass in appropriate data
+
+const callKurento = function(opt) {
+  return new Promise(function(resolve, reject) {
+    request(opt, function(err, resp, body) {
+      if (err) { 
+        console.log('Bad Kurento request');
+        reject(err); 
+      }
+      resolve(body);
+    });
+  });
+};
+
+request(reqPostOptions, function(err, resp, body) {
+  if (err) { console.error(err, 'bad Kurento request'); }
   kurentoResp = body;
 });
 
@@ -33,8 +55,21 @@ app.use(bodyParser.json());
 
 app.use(express.static(__dirname + '/../public'));
 
-app.get('/api/index', function(req, res) {
-  res.status(200).json(kurentoResp);
+app.get('/api/users/:username/track/:track/create', function(req, res) {
+  reqPostOptions.json = req.params;
+  callKurento(reqPostOptions)
+    .then(function(data) {
+      res.status(200).json(data);
+    });
+});
+
+app.get('/api/users/:username/track/:track', function(req, res) {
+  reqFindOptions.json = req.params;
+
+  callKurento(reqFindOptions)
+    .then(function(data) {
+      res.status(200).json(data);
+    });
 });
 
 app.get('/', function(req, res) {
