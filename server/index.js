@@ -10,7 +10,6 @@ const app = express();
 
 const kurentoData = {};
 const kurentoUrl = 'http://138.197.196.39:7676/repo/item';
-let kurentoResp;
 
 let reqPostOptions = {
   url: kurentoUrl,
@@ -39,10 +38,6 @@ const callKurento = function(opt) {
   });
 };
 
-request(reqPostOptions, function(err, resp, body) {
-  if (err) { console.error(err, 'bad Kurento request'); }
-  kurentoResp = body;
-});
 
 // Comment out DB depending on testing or live
 
