@@ -7,6 +7,8 @@ var info = debug('server:info');
 var error = debug('server:error');
 
 const express = require('express');
+const passport = require('passport');
+const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Promise = require('bluebird');
