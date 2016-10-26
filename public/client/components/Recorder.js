@@ -1,5 +1,6 @@
 import styles from 'style';
 import React from 'react';
+import audioRecorder from '../recorder/audioRecorder';
 
 const Recorder = () => (
 
