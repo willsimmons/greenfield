@@ -1,5 +1,5 @@
-import React from 'react';
 import styles from 'style';
+import React from 'react';
 
 const Recorder = () => (
 
@@ -17,15 +17,17 @@ const Recorder = () => (
       <br></br>
       <button name="otherAction">Other Action</button>
     </div>
+
     <div className="meta">
-      <label for="title">Title</label><br></br>
+      <label htmlFor="title">Title</label><br></br>
       <input type="text" id="title"></input><br></br>
-      <label for="title">Subject</label><br></br>
+      <label htmlFor="title">Subject</label><br></br>
       <input type="text" id="subject"></input><br></br>
-      <label for="title">Tags</label><br></br>
+      <label htmlFor="title">Tags</label><br></br>
       <input type="text" id="tags"></input>
     </div>
   </div>
+
 );
 
 export default Recorder;

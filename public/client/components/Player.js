@@ -1,5 +1,5 @@
-import React from 'react';
 import styles from 'style';
+import React from 'react';
 
 const Player = () => (
 
@@ -17,6 +17,7 @@ const Player = () => (
       <br></br>
       <button name="otherAction">Other Action</button>
     </div>
+    
     <div className="meta">
       <h2>Track Information</h2>
     </div>
