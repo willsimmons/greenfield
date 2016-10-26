@@ -21,19 +21,13 @@ body {
 .controls {
 	float: left;
 	width: 30%;
-	height: 180px;
+	height: 250px;
 	background: #adb7f7;
 	text-align: center;
 	border-radius: 5px;
 }
 
-.meta {
-	float: left;
-	width: 70%;
-	height: 180px;
-	background: #5e6382;
-	border-radius: 5px;
-}
+
 
 .nav > ul > li {
 	list-style-type: none;
@@ -61,15 +55,15 @@ body {
     border-radius: 50%;
 	border: 10px solid #cfdcec;
     overflow: hidden;
-    
-    background: white; 
+
+    background: white;
     box-shadow: 0 0 3px gray;
 }
 .round-button-circle:hover {
 	background: grey;
 }
 
-.round-button a {
+.round-button-record {
   display: block;
 	float: left;
 	width: 100%;
@@ -80,7 +74,23 @@ body {
 	text-align: center;
 	color: red;
     font-family: Verdana;
-    font-size: 3em;
+    font-size: 4em;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.round-button-stop {
+  display: block;
+	float: left;
+	width: 100%;
+	padding-top: 50%;
+  padding-bottom: 50%;
+	line-height: 1em;
+	margin-top: -0.6em;
+	text-align: center;
+	color: red;
+    font-family: Verdana;
+    font-size: 2em;
     font-weight: bold;
     text-decoration: none;
 }
@@ -94,14 +104,23 @@ body {
 }
 
 .meta {
+	float: left;
+	width: 70%;
+	height: 500px;
+	background: #5e6382;
+	border-radius: 5px;
 	text-align: center;
 }
 
 .meta label {
 	font-size: 12px;
+	color:white;
+	display:block;
+	margin:5px 0 0 0;
 }
 
 .meta input[type=text] {
+	margin:5px auto 15px;
 	width: 350px;
 	height: 40px;
 	padding: 10px 20px;
@@ -109,8 +128,13 @@ body {
 	box-sizing: border-box;
 	border: none;
   border-bottom: 2px solid black;
+  display:block;
 }
 
 .meta input[type=text]:focus {
   background-color: #e2ffcc;
+}
+
+#desc{
+	height: 245px;
 }
