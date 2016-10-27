@@ -1,7 +1,7 @@
 import styles from 'style';
 import React from 'react';
-import audioRecorder from '../recorder/audioRecorder';
 import $ from 'jquery';
+import audioRecorder from '../recorder/audioRecorder';
 
 class Recorder extends React.Component {
 
@@ -14,45 +14,65 @@ class Recorder extends React.Component {
       className: 'round-button-record',
       status: null
     };
+  }
+
+  componentDidMount () {
     this.init();
   }
 
   init() {
-    // audioRecorder.init(statusUpdate.bind(this));
+    audioRecorder.init(this.statusUpdate.bind(this));
     console.log('init');
   }
 
   handleClick(event) {
-    var url = 'http://localhost:8000/api/recording';
+    var url = 'http://127.0.0.1:8000/api/recording';
     var context = this;
 
     if (!this.state.recordingState) {
-      console.log('setting recordingState true');
-      this.setState({recordingState: true,
-                     recordBtn: '■',
-                     className: 'round-button-stop',
-                     status: 'recording'});
-      var fakeData = {username: 'anon', title: 'first record', description: 'party time', tags: ['party', 'first']};
-      var node = document.getElementsByClassName('audioInput');
+      // FIXME
+      var metadata = { username: 'anon', title: 'first record', description: 'party time' };
+      var node = document.getElementsByClassName('audioInput')[0];
 
-      $.post(url, fakeData, (data) => {
+      // ask for a new item url for recording
+      $.post(url, metadata, data => {
         console.log('success', data);
-        // audioRecorder.start(data.url, node);
-        context.setState({recordId: data.id});
+        audioRecorder.start(data.url, node);
+        context.setState({ recordId: data.id });
+        console.log('setting recordingState true');
+        this.setState({
+          recordingState: true,
+          recordBtn: '■',
+          className: 'round-button-stop',
+          status: 'recording'
+        });
       });
+
     } else {
-      // var id = this.state.recordId
-      var id = '58100808e4b0e6f55757ce46';
+      var id = this.state.recordId; // '58100808e4b0e6f55757ce46';
 
-      this.setState({recordingState: false,
-                     recordBtn: '●',
-                     className: 'round-button-record',
-                     status: 'stopped'});
+      audioRecorder.stop();
       console.log('setting recordingState false ');
-      $.get(url + '/' + id, (data) => {
-        console.log('success', data);
-        // audioRecorder.stop();
+      this.setState({
+        recordingState: false,
+        recordBtn: '●',
+        className: 'round-button-record',
+        status: 'stopped'
       });
+
+      // fetch the item to make sure it got written correctly
+      let count = 0;
+      let checkRecording = () =>
+        $.get(`${url}/${id}`, data => {
+          // it takes time for the recording to be available, so retry up to 10 times
+          if (data.status === 404 && count < 10) {
+            count++;
+            setTimeout(checkRecording, 1000);
+          } else {
+            console.log('success', data);
+          }
+        });
+      checkRecording();
     }
 
   }
@@ -66,7 +86,7 @@ class Recorder extends React.Component {
 
     <div className="recorder">
       <h1>Recorder</h1>
-      <audio className="audioInput"></audio>
+      <audio controls autoPlay className="audioInput"></audio>
       <div className="controls">
         <div className="round-button">
           <div className="round-button-circle">

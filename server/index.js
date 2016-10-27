@@ -15,11 +15,12 @@ const mediaRepo = require('./media-repo/media-repo');
 const port = process.env.PORT || 8000;
 const app = express();
 
-// setup database - FIXME and probably do this in another file
+// setup database - FIXME when we need it and probably do this in another file
 // var dbName = 'mongodb://localhost/test';
 // mongoose.connect(dbName);
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // serve static files
 app.use(express.static(__dirname + '/../public'));
