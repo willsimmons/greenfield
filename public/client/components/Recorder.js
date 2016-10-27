@@ -16,7 +16,7 @@ class Recorder extends React.Component {
     };
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.init();
   }
 
@@ -26,7 +26,7 @@ class Recorder extends React.Component {
   }
 
   handleClick(event) {
-    var url = 'http://127.0.0.1:8000/api/recording';
+    var url = '/api/recording';
     var context = this;
 
     if (!this.state.recordingState) {

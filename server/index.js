@@ -6,6 +6,7 @@ var log = debug('server:log');
 var info = debug('server:info');
 var error = debug('server:error');
 
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -26,32 +27,34 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/../public'));
 
 // create new recording item with metadata, get back recording endpoint url
-app.post('/api/recording', (req, res) => {
-  mediaRepo.createItem(req.body).then(data => res.status(200).json(data)).catch(err => res.status(500).json(err));
-});
+app.post('/api/recording', (req, res) =>
+  mediaRepo.createItem(req.body).then(data => res.status(200).json(data)).catch(err => res.status(500).json(err))
+);
 
 // get recording url and metadata from id
-app.get('/api/recording/:id', (req, res) => {
-  mediaRepo.getItem(req.params.id).then(data => res.status(200).json(data)).catch(err => res.status(500).json(err));
-});
+app.get('/api/recording/:id', (req, res) =>
+  mediaRepo.getItem(req.params.id).then(data => res.status(200).json(data)).catch(err => res.status(500).json(err))
+);
 
 // delete recording from id
-app.delete('/api/recording/:id', (req, res) => {
-  mediaRepo.deleteItem(req.params.id).then(data => res.status(200)).catch(err => res.status(500).json(err));
-});
+app.delete('/api/recording/:id', (req, res) =>
+  mediaRepo.deleteItem(req.params.id).then(data => res.status(200)).catch(err => res.status(500).json(err))
+);
 
 // update recording metadata from id
-app.put('/api/recording/:id', (req, res) => {
-  mediaRepo.updateItem(req.params.id, req.body).then(data => res.status(200)).catch(err => res.status(500).json(err));
-});
+app.put('/api/recording/:id', (req, res) =>
+  mediaRepo.updateItem(req.params.id, req.body).then(data => res.status(200)).catch(err => res.status(500).json(err))
+);
 
 // get list of recordings (returns list of recording IDs)
-app.get('/api/recordings', (req, res) => {
-  mediaRepo.findItems(req.body).then(data => res.status(200).json(data)).catch(err => res.status(500).json(err));
-});
+app.get('/api/recordings', (req, res) =>
+  mediaRepo.findItems(req.body).then(data => res.status(200).json(data)).catch(err => res.status(500).json(err))
+);
 
-// server index.js
-app.get('/', (req, res) => res.send('index'));
+// handle every other route with index.html
+app.get('*', (req, res) =>
+  res.sendFile(path.resolve(__dirname, '../public', 'index.html'))
+);
 
 app.listen(port, err => {
   if (err) {
