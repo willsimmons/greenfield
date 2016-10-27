@@ -1,5 +1,7 @@
 import styles from 'style';
 import React from 'react';
+import $ from 'jquery';
+import audioPlayer from '../player/audioPlayer';
 
 class Player extends React.Component {
 
@@ -16,9 +18,9 @@ class Player extends React.Component {
 
   play() {
     if (!this.state.playingState) {
-      this.setState({playBtn: '■', playingState: true, className: 'round-button-stop'})
+      this.setState({playBtn: '■', playingState: true, className: 'round-button-stop' });
     } else {
-      this.setState({playBtn: '▶', playingState: false, className: 'round-button-play'})
+      this.setState({playBtn: '▶', playingState: false, className: 'round-button-play' });
     }
   }
 
@@ -43,7 +45,7 @@ class Player extends React.Component {
           <h2>Track Information</h2>
         </div>
       </div>
-    )
+    );
   }
 }
 

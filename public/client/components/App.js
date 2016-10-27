@@ -1,6 +1,5 @@
 import React from 'react';
 import NavBar from 'NavBar';
-import Recorder from 'Recorder';
 
 class App extends React.Component {
 
