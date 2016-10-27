@@ -89,7 +89,7 @@ app.post('/login', (req, res, next) => {
 });
 
 // create new user
-app.post('/api/newuser', (req, res) => {
+app.post('/register', (req, res) => {
   user.findOne(req.body.username, function(err, data) {
     if (err) { throw err; }
     if (data.length > 0) {
