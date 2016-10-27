@@ -9,51 +9,83 @@ var error = debug('server:error');
 
 // set up ===================================================================
 const express = require('express');
+const expressSession = require('express-session');
 const passport = require('passport');
+const flash = require('flash');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const database = require('./config/db.js');
+const db = require('./config/db.js');
+const password = require('./config/secret.js');
 const Promise = require('bluebird');
+let LocalStrategy = require('passport-local').Strategy;
 const mediaRepo = require('./media-repo/media-repo');
-
-// configuration ============================================================
 const port = process.env.PORT || 8000;
+
 const app = express();
 
-const user = require('../database/controllers/user.js');
-const record = require('../database/controllers/record.js');
+// configuration ============================================================
+
+// db controllers
+const User = require('../database/controllers/user.js');
+const Record = require('../database/controllers/record.js');
 
 // connect to mongoDB database, check config folder to change url
-mongoose.connect(database.url);
+mongoose.connect(db.url);
 
-//parse application/json
+// parse application/json
 app.use(bodyParser.json());
+// session management
+app.use(expressSession({
+  secret: password.phrase,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: true }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
 
-// serve static files
-app.use(express.static(__dirname + '/../public'));
+// passport login schema
+passport.use(new LocalStrategy({
+  passReqToCallback: true
+}, 
+function(req, username, password, done) {
+  User.findOne(username, function(err, user) {
+    if (err) { return done(err); }
+    if (user.length === 0) {
+      return done(null, false, { message: 'Username does not exist!' });
+    }
+    if (password !== user[0].password) {
+      return done(null, false, { message: 'Incorrect password.' });
+    }
+    return done(null, user[0]);
+  });
+}
+));
+
+// passport sessionizer
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+passport.deserializeUser(function(user, done) {
+  done(null, user);
+});
 
 
 // TODO: Move routes to separate file
 // routes ===================================================================
 
+// serve static files
+app.use(express.static(__dirname + '/../public'));
+
 // login existing user
-app.post('/api/auth', (req, res) => {
-  user.findOne(req.body.username, function(err, data) {
-    if (err) { throw err; }
-    if (data.length > 0) {
-      if (req.body.password === data[0].password) {
-        console.log('successful login!');
-        res.redirect('/');
-      } else {
-        console.log('bad password!');
-        res.redirect('/');
-      }
-    } else {
-      console.log('username does not exist!');
-      res.redirect('/');
-    }
-  });
+app.post('/login', (req, res, next) => {
+  passport.authenticate('local', {
+    successRedirect: '/yes',
+    failureRedirect: '/no',
+    failureFlash: true
+  })(req, res, next);
 });
 
 // create new user
