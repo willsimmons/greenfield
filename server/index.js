@@ -1,30 +1,120 @@
 'use strict';
 
+// debug ====================================================================
 var debug = require('debug');
 debug.enable('server:*');
 var log = debug('server:log');
 var info = debug('server:info');
 var error = debug('server:error');
 
-const path = require('path');
+// set up ===================================================================
 const express = require('express');
+const expressSession = require('express-session');
+const path = require('path');
+const passport = require('passport');
+const flash = require('flash');
+const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const db = require('./config/db.js');
+const password = require('./config/secret.js');
 const Promise = require('bluebird');
+let LocalStrategy = require('passport-local').Strategy;
 const mediaRepo = require('./media-repo/media-repo');
-
 const port = process.env.PORT || 8000;
+
 const app = express();
 
-// setup database - FIXME when we need it and probably do this in another file
-// var dbName = 'mongodb://localhost/test';
-// mongoose.connect(dbName);
+// configuration ============================================================
 
+// db controllers
+const User = require('../database/controllers/user.js');
+const Record = require('../database/controllers/record.js');
+
+// connect to mongoDB database, check config folder to change url
+mongoose.connect(db.url);
+
+// formatting data for use
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// session management
+app.use(expressSession({
+  secret: password.phrase,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: true }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+
+// passport login schema
+passport.use(new LocalStrategy({
+  passReqToCallback: true
+}, 
+function(req, username, password, done) {
+  User.findOne(username, function(err, user) {
+    if (err) { return done(err); }
+    if (user.length === 0) {
+      return done(null, false, { message: 'Username does not exist!' });
+    }
+    if (password !== user[0].password) {
+      return done(null, false, { message: 'Incorrect password.' });
+    }
+    return done(null, user[0]);
+  });
+}
+));
+
+// passport sessionizer
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+passport.deserializeUser(function(user, done) {
+  done(null, user);
+});
+
+
+// TODO: Move routes to separate file
+// routes ===================================================================
+
 // serve static files
 app.use(express.static(__dirname + '/../public'));
+
+// login existing user
+app.post('/api/login', (req, res, next) => {
+  passport.authenticate('local', {
+    successRedirect: '/yes',
+    failureRedirect: '/no',
+    failureFlash: true
+  })(req, res, next);
+});
+
+// create new user
+app.post('/api/register', (req, res) => {
+  User.findOne(req.body.username, function(err, data) {
+    if (err) { console.error('Not able to search DB', err); }
+    if (data.length > 0) {
+      console.log('username already exists!');
+      return res.redirect('/');
+    } else {
+      User.addUser({
+        username: req.body.username,
+        password: req.body.password,
+        email: req.body.email
+      }, function(err, data) {
+        if (err) { console.error('Error creating user', err); }
+        console.log('created new user:', req.body.username);
+        req.login(data, function(err) {
+          if (err) { console.error('Error logging in', err); }
+          console.log('logged in as', req.body.username);
+          return res.redirect('/');
+        }); 
+      });
+    }
+  });
+});
 
 // create new recording item with metadata, get back recording endpoint url
 app.post('/api/recording', (req, res) =>
@@ -56,6 +146,8 @@ app.get('*', (req, res) =>
   res.sendFile(path.resolve(__dirname, '../public', 'index.html'))
 );
 
+
+// listen (start app with node / nodemon index.js) ==========================
 app.listen(port, err => {
   if (err) {
     error('Error while trying to start the server (port already in use maybe?)');
