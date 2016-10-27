@@ -7,16 +7,18 @@ let audioRecorder = {
   IDLE: 0,
   DISABLED: 1,
   RECORDING: 2,
+  STOPPING: 3,
   state: 0, // start idle
 
   webRtcPeer: null,
   client: null,
   pipeline: null,
+  fileUri: null,
 
   statusUpdate: null,
 
   init: statusUpdate => {
-    audioRecorder.statusUpdate(statusUpdate);
+    audioRecorder.statusUpdate = statusUpdate;
     audioRecorder.webRtcPeer = null;
     audioRecorder.client = null;
     audioRecorder.pipeline = null;
@@ -24,7 +26,7 @@ let audioRecorder = {
   },
 
   start: (fileUri, audioInput) => {
-    //fileUri = fileUri || 'http://127.0.0.1:7676/repository_servlet/c1el9ntibp5aq7vp568o7bmmgs';
+    audioRecorder.fileUri = fileUri;
 
     audioRecorder.setStatus(audioRecorder.DISABLED);
 
@@ -33,15 +35,17 @@ let audioRecorder = {
       mediaConstraints: { audio: true, video: false } // audio only
     };
 
-    // FIXME: could use WebRtcPeerSendonly instead but we may want to receive to do a visualizer
-    audioRecorder.webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, error => {
-      if (error) { return onError(error); }
-      this.generateOffer(onStartOffer);
+    // FIXME? could use WebRtcPeerSendonly instead but we may want to receive to do a visualizer
+    audioRecorder.webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
+      if (error) { return audioRecorder.onError(error); }
+      audioRecorder.webRtcPeer.generateOffer(audioRecorder.onStartOffer);
     });
   },
 
   stop: () => {
-    if (webRtcPeer) {
+    audioRecorder.setStatus(audioRecorder.STOPPING);
+
+    if (audioRecorder.webRtcPeer) {
       audioRecorder.webRtcPeer.dispose();
       audioRecorder.webRtcPeer = null;
     }
@@ -62,8 +66,9 @@ let audioRecorder = {
 
     // set state and call update function
     audioRecorder.state = nextState;
-    audioRecorder.statusUpdate(audioRecorder.state === IDLE ? 'IDLE' :
-                               audioRecorder.state === RECORDING ? 'RECORDING' : 'DISABLED');
+    audioRecorder.statusUpdate(audioRecorder.state === audioRecorder.IDLE ? 'IDLE' :
+                               audioRecorder.state === audioRecorder.RECORDING ? 'RECORDING' :
+                               audioRecorder.state === audioRecorder.STOPPING ? 'STOPPING' : 'DISABLED');
   },
 
   setIceCandidateCallbacks: (webRtcPeer, webRtcEp, onerror) => {
@@ -83,7 +88,7 @@ let audioRecorder = {
   onStartOffer: (error, sdpOffer) => {
     if (error) { return audioRecorder.onError(error); }
 
-    co(function*() {
+    co(function *() {
       try {
         if (!audioRecorder.client) { audioRecorder.client = yield kurentoClient(audioRecorder.wsUri); }
 
@@ -92,10 +97,13 @@ let audioRecorder = {
 
         // create webrtc endpoint
         var webRtc = yield audioRecorder.pipeline.create('WebRtcEndpoint');
-        audioRecorder.setIceCandidateCallbacks(audioRecorder.webRtcPeer, webRtc, onError);
+        audioRecorder.setIceCandidateCallbacks(audioRecorder.webRtcPeer, webRtc, audioRecorder.onError);
 
         // create recorder pointing to our recording url
-        var recorder = yield audioRecorder.pipeline.create('RecorderEndpoint', { uri: fileUri });
+        var recorder = yield audioRecorder.pipeline.create('RecorderEndpoint', {
+          uri: audioRecorder.fileUri,
+          mediaProfile: 'WEBM_AUDIO_ONLY' // audio only
+        });
 
         // connect
         yield webRtc.connect(recorder);
@@ -105,7 +113,7 @@ let audioRecorder = {
         yield recorder.record();
 
         var sdpAnswer = yield webRtc.processOffer(sdpOffer);
-        webRtc.gatherCandidates(onError);
+        webRtc.gatherCandidates(audioRecorder.onError);
         audioRecorder.webRtcPeer.processAnswer(sdpAnswer);
 
         audioRecorder.setStatus(audioRecorder.RECORDING);
