@@ -80,7 +80,7 @@ passport.deserializeUser(function(user, done) {
 app.use(express.static(__dirname + '/../public'));
 
 // login existing user
-app.post('/login', (req, res, next) => {
+app.post('/api/login', (req, res, next) => {
   passport.authenticate('local', {
     successRedirect: '/yes',
     failureRedirect: '/no',
@@ -89,20 +89,27 @@ app.post('/login', (req, res, next) => {
 });
 
 // create new user
-app.post('/register', (req, res) => {
-  user.findOne(req.body.username, function(err, data) {
-    if (err) { throw err; }
+app.post('/api/register', (req, res) => {
+  User.findOne(req.body.username, function(err, data) {
+    if (err) { console.error('Not able to search DB', err); }
     if (data.length > 0) {
       console.log('username already exists!');
-      res.redirect('/');
+      return res.redirect('/');
+    } else {
+      User.addUser({
+        username: req.body.username,
+        password: req.body.password,
+        email: req.body.email
+      }, function(err, data) {
+        if (err) { console.error('Error creating user', err); }
+        console.log('created new user:', req.body.username);
+        req.login(data, function(err) {
+          if (err) { console.error('Error logging in', err); }
+          console.log('logged in as', req.body.username);
+          return res.redirect('/');
+        }); 
+      });
     }
-    user.addUser({
-      username: req.body.username,
-      password: req.body.password,
-      email: req.body.email
-    });
-    console.log('created new user:', req.body.username);
-    res.redirect('/');
   });
 });
 
