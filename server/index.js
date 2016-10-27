@@ -33,8 +33,46 @@ app.use(bodyParser.json());
 // serve static files
 app.use(express.static(__dirname + '/../public'));
 
-// routes ===================================================================
+
 // TODO: Move routes to separate file
+// routes ===================================================================
+
+// login existing user
+app.post('/api/auth', (req, res) => {
+  user.findOne(req.body.username, function(err, data) {
+    if (err) { throw err; }
+    if (data.length > 0) {
+      if (req.body.password === data[0].password) {
+        console.log('successful login!');
+        res.redirect('/');
+      } else {
+        console.log('bad password!');
+        res.redirect('/');
+      }
+    } else {
+      console.log('username does not exist!');
+      res.redirect('/');
+    }
+  });
+});
+
+// create new user
+app.post('/api/newuser', (req, res) => {
+  user.findOne(req.body.username, function(err, data) {
+    if (err) { throw err; }
+    if (data.length > 0) {
+      console.log('username already exists!');
+      res.redirect('/');
+    }
+    user.addUser({
+      username: req.body.username,
+      password: req.body.password,
+      email: req.body.email
+    });
+    console.log('created new user:', req.body.username);
+    res.redirect('/');
+  });
+});
 
 // create new recording item with metadata, get back recording endpoint url
 app.post('/api/recording', (req, res) => {

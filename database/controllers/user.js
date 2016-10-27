@@ -8,8 +8,8 @@ const addUser = function(userdata, cb) {
   }, cb);
 };
 
-const findOne = function(userdata, cb) {
-  UserModel.find({username: userdata.username}, cb);
+const findOne = function(username, cb) {
+  UserModel.find({username: username}, cb);
 };
 
 exports.addUser = addUser;
