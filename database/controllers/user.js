@@ -1,6 +1,6 @@
 const UserModel = require('../models/user.js');
 
-function addUser(userdata, cb) {
+const addUser = function(userdata, cb) {
   UserModel.create({
     username: userdata.username, 
     password: userdata.password,
@@ -8,7 +8,7 @@ function addUser(userdata, cb) {
   }, cb);
 };
 
-function findOne(userdata, cb) {
+const findOne = function(userdata, cb) {
   UserModel.find({username: userdata.username}, cb);
 };
 

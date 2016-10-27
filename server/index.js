@@ -1,30 +1,40 @@
 'use strict';
 
+// debug ====================================================================
 var debug = require('debug');
 debug.enable('server:*');
 var log = debug('server:log');
 var info = debug('server:info');
 var error = debug('server:error');
 
+// set up ===================================================================
 const express = require('express');
 const passport = require('passport');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const database = require('./config/db.js');
 const Promise = require('bluebird');
 const mediaRepo = require('./media-repo/media-repo');
 
+// configuration ============================================================
 const port = process.env.PORT || 8000;
 const app = express();
 
-// setup database - FIXME and probably do this in another file
-// var dbName = 'mongodb://localhost/test';
-// mongoose.connect(dbName);
+const user = require('../database/controllers/user.js');
+const record = require('../database/controllers/record.js');
 
+// connect to mongoDB database, check config folder to change url
+mongoose.connect(database.url);
+
+//parse application/json
 app.use(bodyParser.json());
 
 // serve static files
 app.use(express.static(__dirname + '/../public'));
+
+// routes ===================================================================
+// TODO: Move routes to separate file
 
 // create new recording item with metadata, get back recording endpoint url
 app.post('/api/recording', (req, res) => {
@@ -54,6 +64,8 @@ app.get('/api/recordings', (req, res) => {
 // server index.js
 app.get('/', (req, res) => res.send('index'));
 
+
+// listen (start app with node / nodemon index.js) ==========================
 app.listen(port, err => {
   if (err) {
     error('Error while trying to start the server (port already in use maybe?)');

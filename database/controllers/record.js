@@ -1,14 +1,15 @@
 const RecordModel = require('../models/record.js');
 
-function addRecord(data, cb) {
+const addRecord = function(data, cb) {
   RecordModel.create({
     author: data.author,
     filePath: data.filePath,
     desc: data.desc,
     recLength: data.recLength
   }, cb);
+};
 
-function findOne(id, cb) {
+const findOne = function(id, cb) {
   RecordModel.find({_id: id}, cb);
 };
 

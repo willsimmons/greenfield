@@ -9,8 +9,8 @@ const recordSchema = mongoose.Schema({
   desc: String,
   recLength: Number,
   created: {
-  	type: Date,
-  	default: Date.now
+    type: Date,
+    default: Date.now
   }
 });
 
