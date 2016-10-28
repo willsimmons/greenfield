@@ -12,5 +12,10 @@ const findOne = function(username, cb) {
   UserModel.find({username: username}, cb);
 };
 
+const findId = function(id, cb) {
+  UserModel.find({_id: id}, cb);
+};
+
 exports.addUser = addUser;
 exports.findOne = findOne;
+exports.findId = findId;
