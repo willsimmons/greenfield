@@ -3,6 +3,12 @@ import React from 'react';
 import $ from 'jquery';
 import audioRecorder from '../recorder/AudioRecorder2';
 
+let myDebug = require('debug');
+myDebug.enable('Recorder:*');
+const log = myDebug('Recorder:log');
+const info = myDebug('Recorder:info');
+const error = myDebug('Recorder:error');
+
 class Recorder extends React.Component {
 
   constructor(props) {
@@ -22,7 +28,7 @@ class Recorder extends React.Component {
 
   init() {
     audioRecorder.init(this.statusUpdate.bind(this));
-    console.log('init');
+    log('init');
   }
 
   handleClick(event) {
@@ -36,10 +42,10 @@ class Recorder extends React.Component {
 
       // ask for a new item url for recording
       $.post(url, metadata, data => {
-        console.log('success', data);
+        log('success', data);
         audioRecorder.start(data.url, node, 'gilles');
         context.setState({ recordId: data.id });
-        console.log('setting recordingState true');
+        log('setting recordingState true');
         this.setState({
           recordingState: true,
           recordBtn: '■',
@@ -52,7 +58,7 @@ class Recorder extends React.Component {
       var id = this.state.recordId; // '58100808e4b0e6f55757ce46';
 
       audioRecorder.stop();
-      console.log('setting recordingState false ');
+      log('setting recordingState false ');
       this.setState({
         recordingState: false,
         recordBtn: '●',
@@ -68,10 +74,10 @@ class Recorder extends React.Component {
           if (data.status === 404 && count < 10) {
             count++;
             setTimeout(checkRecording, 1000);
-          } else if (data.status === 200) {
-            console.log('success', data);
+          } else if (!data.status) {
+            log('success', data);
           } else {
-            console.error('error', data);
+            error('error', data);
           }
         });
       checkRecording();

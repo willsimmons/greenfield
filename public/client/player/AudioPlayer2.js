@@ -1,9 +1,15 @@
+let myDebug = require('debug');
+myDebug.enable('AudioPlayer:*');
+const log = myDebug('AudioPlayer:log');
+const info = myDebug('AudioPlayer:info');
+const error = myDebug('AudioPlayer:error');
+
 let audioPlayer = {
   set: (v, val) => { audioPlayer[v] = val; },
   get: v => audioPlayer[v],
 
   kmsWsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket URI
-  wsUri: 'wss://127.0.0.1:8443/audio', // secure websocket URI with server
+  wsUri: `wss://${location.hostname}:8443/audio`, // secure websocket URI with server
   ws: null, // secure websocket with server
 
   IDLE: 0,
@@ -35,7 +41,7 @@ let audioPlayer = {
     // setup communication handler
     audioPlayer.ws.onmessage = message => {
       var parsedMessage = JSON.parse(message.data);
-      console.info('Received message: ' + message.data);
+      info('Received message:', parsedMessage);
 
       if (parsedMessage.id === 'stopCommunication') {
         audioPlayer.stop(true);
@@ -46,7 +52,7 @@ let audioPlayer = {
       } else if (parsedMessage.id === 'listenerResponse') {
         listenerResponse(parsedMessage);
       } else {
-        console.error('Unrecognized message', parsedMessage);
+        error('Unrecognized message', parsedMessage);
       }
 
       // send message back to view for further processing
@@ -116,7 +122,7 @@ let audioPlayer = {
   },
 
   onIceCandidate: candidate => {
-    console.log('Local candidate' + JSON.stringify(candidate));
+    log('Local candidate', candidate);
 
     let message = {
       id: 'onIceCandidate',
@@ -128,17 +134,18 @@ let audioPlayer = {
   broadcasterResponse: message => {
     if (message.response !== 'accepted') {
       var errorMsg = message.message ? message.message : 'Unknown error';
-      console.warn(`Broadcast not accepted for the following reason: ${errorMsg}`);
+      warn(`Broadcast not accepted for the following reason: ${errorMsg}`);
       audioPlayer.stop(true);
     } else {
       audioPlayer.webRtcPeer.processAnswer(message.sdpAnswer);
+      audioPlayer.audioNode.muted = false; // unmute player on start
       audioPlayer.setStatus(audioPlayer.PLAYING); // we are recording!
     }
   },
 
   onError: error => {
     if (error) {
-      console.error(error);
+      error(error);
       audioPlayer.stop();
     }
   },
@@ -146,7 +153,7 @@ let audioPlayer = {
   sendMessage: message => {
     message.user = audioPlayer.user; // send user id to server
     let jsonMessage = JSON.stringify(message);
-    console.log(`Sending message: ${jsonMessage}`);
+    log('Sending message:', message);
     audioPlayer.ws.send(jsonMessage);
   }
 

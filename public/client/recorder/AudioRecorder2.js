@@ -1,9 +1,15 @@
+let myDebug = require('debug');
+myDebug.enable('AudioRecorder:*');
+const log = myDebug('AudioRecorder:log');
+const info = myDebug('AudioRecorder:info');
+const error = myDebug('AudioRecorder:error');
+
 let audioRecorder = {
   set: (v, val) => { audioRecorder[v] = val; },
   get: v => audioRecorder[v],
 
   kmsWsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket URI
-  wsUri: 'wss://127.0.0.1:8443/audio', // secure websocket URI with server
+  wsUri: `wss://${location.hostname}:8443/audio`, // secure websocket URI with server
   ws: null, // secure websocket with server
 
   IDLE: 0,
@@ -35,19 +41,19 @@ let audioRecorder = {
     // setup communication handler
     audioRecorder.ws.onmessage = message => {
       var parsedMessage = JSON.parse(message.data);
-      console.info('Received message: ' + message.data);
+      info('Received message:', parsedMessage);
 
       if (parsedMessage.id === 'stopCommunication') {
         audioRecorder.stop(true);
       } else if (parsedMessage.id === 'iceCandidate') {
-        console.info('Received remote candidate', parsedMessage.candidate);
+        info('Received remote candidate', parsedMessage.candidate);
         audioRecorder.webRtcPeer.addIceCandidate(parsedMessage.candidate);
       } else if (parsedMessage.id === 'broadcasterResponse') {
         audioRecorder.broadcasterResponse(parsedMessage);
       //} else if (parsedMessage.id === 'listenerResponse') {
         //listenerResponse(parsedMessage);
       } else {
-        console.error('Unrecognized message', parsedMessage);
+        error('Unrecognized message', parsedMessage);
       }
 
       // send message back to view for further processing
@@ -68,7 +74,8 @@ let audioRecorder = {
       onicecandidate: audioRecorder.onIceCandidate
     };
 
-    //audioRecorder.webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
+    // FIXME: do we need WebRtcPeerSendrecv or only WebRtcPeerSendonly?
+    //        do we need to add another player if we want to do a sound analyzer?
     audioRecorder.webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, error => {
       if (error) { return audioRecorder.onError(error); }
       audioRecorder.webRtcPeer.generateOffer(audioRecorder.onOfferBroadcaster);
@@ -119,7 +126,7 @@ let audioRecorder = {
   },
 
   onIceCandidate: candidate => {
-    console.log('Local candidate', candidate);
+    log('Local candidate', candidate);
 
     let message = {
       id: 'onIceCandidate',
@@ -131,18 +138,19 @@ let audioRecorder = {
   broadcasterResponse: message => {
     if (message.response !== 'accepted') {
       var errorMsg = message.message ? message.message : 'Unknown error';
-      console.warn(`Broadcast not accepted for the following reason: ${errorMsg}`);
+      warn(`Broadcast not accepted for the following reason: ${errorMsg}`);
       audioRecorder.stop(true);
     } else {
-      console.log('Received broadcaster response');
+      log('Received broadcaster response');
       audioRecorder.webRtcPeer.processAnswer(message.sdpAnswer);
+      audioRecorder.audioNode.muted = false; // unmute player on start
       audioRecorder.setStatus(audioRecorder.RECORDING); // we are recording!
     }
   },
 
   onError: error => {
     if (error) {
-      console.error(error);
+      error(error);
       audioRecorder.stop();
     }
   },
@@ -150,7 +158,7 @@ let audioRecorder = {
   sendMessage: message => {
     message.user = audioRecorder.user; // send user id to server
     let jsonMessage = JSON.stringify(message);
-    console.log('Sending message:', message);
+    log('Sending message:', message);
     audioRecorder.ws.send(jsonMessage);
   }
 

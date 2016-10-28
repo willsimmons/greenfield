@@ -1,3 +1,9 @@
+let myDebug = require('debug');
+myDebug.enable('AudioRecorder:*');
+const log = myDebug('AudioRecorder:log');
+const info = myDebug('AudioRecorder:info');
+const error = myDebug('AudioRecorder:error');
+
 let audioRecorder = {
   set: (v, val) => { audioRecorder[v] = val; },
   get: v => audioRecorder[v],
@@ -74,14 +80,14 @@ let audioRecorder = {
 
   setIceCandidateCallbacks: (webRtcPeer, webRtcEp, onerror) => {
     webRtcPeer.on('icecandidate', candidate => {
-      console.log('Local candidate:', candidate);
+      log('Local candidate:', candidate);
       candidate = kurentoClient.getComplexType('IceCandidate')(candidate);
       webRtcEp.addIceCandidate(candidate, onerror);
     });
 
     webRtcEp.on('OnIceCandidate', function(event) {
       var candidate = event.candidate;
-      console.log('Remote candidate:', candidate);
+      log('Remote candidate:', candidate);
       webRtcPeer.addIceCandidate(candidate, onerror);
     });
   },
@@ -113,11 +119,11 @@ let audioRecorder = {
         // start recorder
         yield recorder.record();
 
-        console.log('Getting sdpAnswer...');
+        log('Getting sdpAnswer...');
         var sdpAnswer = yield webRtc.processOffer(sdpOffer);
-        console.log('Got sdpAnswer!');
+        log('Got sdpAnswer!');
         webRtc.gatherCandidates(audioRecorder.onError);
-        console.log('Sending sdpAnswer back...');
+        log('Sending sdpAnswer back...');
         audioRecorder.webRtcPeer.processAnswer(sdpAnswer);
 
         audioRecorder.setStatus(audioRecorder.RECORDING);
@@ -130,7 +136,7 @@ let audioRecorder = {
 
   onError: error => {
     if (error) {
-      console.error(error);
+      error(error);
       audioRecorder.stop();
     }
   }

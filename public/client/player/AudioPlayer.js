@@ -1,3 +1,9 @@
+let myDebug = require('debug');
+myDebug.enable('AudioPlayer:*');
+const log = myDebug('AudioPlayer:log');
+const info = myDebug('AudioPlayer:info');
+const error = myDebug('AudioPlayer:error');
+
 let audioPlayer = {
   set: (v, val) => { audioPlayer[v] = val; },
   get: v => audioPlayer[v],
@@ -76,14 +82,14 @@ let audioPlayer = {
 
   setIceCandidateCallbacks: (webRtcPeer, webRtcEp, onerror) => {
     webRtcPeer.on('icecandidate', candidate => {
-      console.log('Local candidate:', candidate);
+      log('Local candidate:', candidate);
       candidate = kurentoClient.getComplexType('IceCandidate')(candidate);
       webRtcEp.addIceCandidate(candidate, onerror);
     });
 
     webRtcEp.on('OnIceCandidate', event => {
       var candidate = event.candidate;
-      console.log('Remote candidate:', candidate);
+      log('Remote candidate:', candidate);
       webRtcPeer.addIceCandidate(candidate, onerror);
     });
   },
@@ -131,7 +137,7 @@ let audioPlayer = {
 
   onError: error => {
     if (error) {
-      console.error(error);
+      error(error);
       audioPlayer.stop();
     }
   }
