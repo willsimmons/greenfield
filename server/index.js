@@ -1,10 +1,10 @@
 'use strict';
 
-var debug = require('debug');
+const debug = require('debug');
 debug.enable('server:*');
-var log = debug('server:log');
-var info = debug('server:info');
-var error = debug('server:error');
+const log = debug('server:log');
+const info = debug('server:info');
+const error = debug('server:error');
 
 const path = require('path');
 const express = require('express');
@@ -12,6 +12,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Promise = require('bluebird');
 const mediaRepo = require('./media-repo/media-repo');
+const broadcasting = require('./broadcasting/broadcasting');
 
 const port = process.env.PORT || 8000;
 const app = express();
