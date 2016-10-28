@@ -1,8 +1,8 @@
 import styles from 'style';
 import React from 'react';
 import $ from 'jquery';
-import audioPlayer from '../player/audioPlayer';
 import PlaylistItem from 'PlaylistItem';
+import audioPlayer from '../player/AudioPlayer2';
 
 class Player extends React.Component {
 

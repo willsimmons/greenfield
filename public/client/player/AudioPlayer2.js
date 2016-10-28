@@ -3,7 +3,7 @@ let audioPlayer = {
   get: v => audioPlayer[v],
 
   kmsWsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket URI
-  wsUri: 'wss://' + location.host + '/audio', // secure websocket URI with server
+  wsUri: 'wss://127.0.0.1:8443/audio', // secure websocket URI with server
   ws: null, // secure websocket with server
 
   IDLE: 0,
@@ -146,7 +146,7 @@ let audioPlayer = {
   sendMessage: message => {
     message.user = audioPlayer.user; // send user id to server
     let jsonMessage = JSON.stringify(message);
-    console.log(`Senging message: ${jsonMessage}`);
+    console.log(`Sending message: ${jsonMessage}`);
     audioPlayer.ws.send(jsonMessage);
   }
 

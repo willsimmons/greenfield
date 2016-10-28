@@ -3,7 +3,7 @@ let audioRecorder = {
   get: v => audioRecorder[v],
 
   kmsWsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket URI
-  wsUri: 'wss://' + location.host + '/audio', // secure websocket URI with server
+  wsUri: 'wss://127.0.0.1:8443/audio', // secure websocket URI with server
   ws: null, // secure websocket with server
 
   IDLE: 0,
@@ -40,6 +40,7 @@ let audioRecorder = {
       if (parsedMessage.id === 'stopCommunication') {
         audioRecorder.stop(true);
       } else if (parsedMessage.id === 'iceCandidate') {
+        console.info('Received remote candidate', parsedMessage.candidate);
         audioRecorder.webRtcPeer.addIceCandidate(parsedMessage.candidate);
       } else if (parsedMessage.id === 'broadcasterResponse') {
         audioRecorder.broadcasterResponse(parsedMessage);
@@ -51,7 +52,7 @@ let audioRecorder = {
 
       // send message back to view for further processing
       //   the server will send the media repo id and url in the broadcasterResponse message if accepted
-      processMessage(parsedMessage);
+      processMessage && processMessage(parsedMessage);
     };
   },
 
@@ -68,7 +69,7 @@ let audioRecorder = {
     };
 
     //audioRecorder.webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function (error) {
-    audioRecorder.webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendonly(options, error => {
+    audioRecorder.webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, error => {
       if (error) { return audioRecorder.onError(error); }
       audioRecorder.webRtcPeer.generateOffer(audioRecorder.onOfferBroadcaster);
     });
@@ -118,7 +119,7 @@ let audioRecorder = {
   },
 
   onIceCandidate: candidate => {
-    console.log('Local candidate' + JSON.stringify(candidate));
+    console.log('Local candidate', candidate);
 
     let message = {
       id: 'onIceCandidate',
@@ -133,6 +134,7 @@ let audioRecorder = {
       console.warn(`Broadcast not accepted for the following reason: ${errorMsg}`);
       audioRecorder.stop(true);
     } else {
+      console.log('Received broadcaster response');
       audioRecorder.webRtcPeer.processAnswer(message.sdpAnswer);
       audioRecorder.setStatus(audioRecorder.RECORDING); // we are recording!
     }
@@ -148,7 +150,7 @@ let audioRecorder = {
   sendMessage: message => {
     message.user = audioRecorder.user; // send user id to server
     let jsonMessage = JSON.stringify(message);
-    console.log(`Senging message: ${jsonMessage}`);
+    console.log('Sending message:', message);
     audioRecorder.ws.send(jsonMessage);
   }
 

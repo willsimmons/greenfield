@@ -9,6 +9,7 @@ const error = debug('server:error');
 
 // set up ===================================================================
 const Promise = require('bluebird');
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const expressSession = require('express-session');
@@ -22,10 +23,12 @@ const LocalStrategy = require('passport-local').Strategy;
 const mongoose = require('mongoose');
 const db = require('./config/db.js');
 const password = require('./config/secret.js');
+
+const port = process.env.PORT || 8443;
+
+const https = require('https');
 const mediaRepo = require('./media-repo/media-repo');
 const broadcasting = require('./broadcasting/broadcasting');
-
-const port = process.env.PORT || 8000;
 
 const app = express();
 
@@ -189,14 +192,21 @@ app.get('*', (req, res, next) =>
   res.sendFile(path.resolve(__dirname, '../public', 'index.html'))
 );
 
+// key/certificate for https server
+const options = {
+  key: fs.readFileSync(__dirname + '/keys/server.key'),
+  cert: fs.readFileSync(__dirname + '/keys/server.crt')
+};
 
 // listen (start app with node / nodemon index.js) ==========================
-app.listen(port, err => {
+// secure server setup
+const server = https.createServer(options, app).listen(port, err => {
   if (err) {
     error('Error while trying to start the server (port already in use maybe?)');
     return err;
   }
-  info(`server listening on port ${port}`);
+  info(`secure server listening on port ${port}`);
+  broadcasting.startWss(server);
 });
 
 module.exports = app;
