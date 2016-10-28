@@ -2,7 +2,7 @@ let audioPlayer = {
   set: (v, val) => { audioPlayer[v] = val; },
   get: v => audioPlayer[v],
 
-  wsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket
+  kmsWsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket
 
   IDLE: 0,
   DISABLED: 1,
@@ -93,7 +93,7 @@ let audioPlayer = {
 
     co(function *() {
       try {
-        if (!audioPlayer.client) { audioPlayer.client = yield kurentoClient(audioPlayer.wsUri); }
+        if (!audioPlayer.client) { audioPlayer.client = yield kurentoClient(audioPlayer.kmsWsUri); }
 
         // create media pipeline
         audioPlayer.pipeline = yield audioPlayer.client.create('MediaPipeline');

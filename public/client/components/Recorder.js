@@ -1,7 +1,7 @@
 import styles from 'style';
 import React from 'react';
 import $ from 'jquery';
-import audioRecorder from '../recorder/audioRecorder';
+import audioRecorder from '../recorder/AudioRecorder2';
 
 class Recorder extends React.Component {
 
@@ -37,7 +37,7 @@ class Recorder extends React.Component {
       // ask for a new item url for recording
       $.post(url, metadata, data => {
         console.log('success', data);
-        audioRecorder.start(data.url, node);
+        audioRecorder.start(data.url, node, 'gilles');
         context.setState({ recordId: data.id });
         console.log('setting recordingState true');
         this.setState({
@@ -68,8 +68,10 @@ class Recorder extends React.Component {
           if (data.status === 404 && count < 10) {
             count++;
             setTimeout(checkRecording, 1000);
-          } else {
+          } else if (data.status === 200) {
             console.log('success', data);
+          } else {
+            console.error('error', data);
           }
         });
       checkRecording();

@@ -2,7 +2,7 @@ let audioRecorder = {
   set: (v, val) => { audioRecorder[v] = val; },
   get: v => audioRecorder[v],
 
-  wsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket
+  kmsWsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket URI
 
   IDLE: 0,
   DISABLED: 1,
@@ -33,6 +33,7 @@ let audioRecorder = {
     let options = {
       localVideo: audioInput,
       mediaConstraints: { audio: true, video: false } // audio only
+      //onicecandidate: onIceCandidate
     };
 
     // FIXME? could use WebRtcPeerSendonly instead but we may want to receive to do a visualizer
@@ -90,7 +91,7 @@ let audioRecorder = {
 
     co(function *() {
       try {
-        if (!audioRecorder.client) { audioRecorder.client = yield kurentoClient(audioRecorder.wsUri); }
+        if (!audioRecorder.client) { audioRecorder.client = yield kurentoClient(audioRecorder.kmsWsUri); }
 
         // create media pipeline
         audioRecorder.pipeline = yield audioRecorder.client.create('MediaPipeline');
@@ -112,8 +113,11 @@ let audioRecorder = {
         // start recorder
         yield recorder.record();
 
+        console.log('Getting sdpAnswer...');
         var sdpAnswer = yield webRtc.processOffer(sdpOffer);
+        console.log('Got sdpAnswer!');
         webRtc.gatherCandidates(audioRecorder.onError);
+        console.log('Sending sdpAnswer back...');
         audioRecorder.webRtcPeer.processAnswer(sdpAnswer);
 
         audioRecorder.setStatus(audioRecorder.RECORDING);
@@ -130,6 +134,7 @@ let audioRecorder = {
       audioRecorder.stop();
     }
   }
+
 };
 
 export default audioRecorder;

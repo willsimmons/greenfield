@@ -10,7 +10,7 @@
     "webpack": "webpack --progress --colors",
     "webpack-watch": "webpack --progress --colors --watch",
     "test": "live-server --open=./SpecRunner.html --port=8081",
-    "postinstall": "curl -s https://raw.githubusercontent.com/reactorcore/pomander/master/bin/install | bash"
+    "postinstall": "curl -s https://raw.githubusercontent.com/reactorcore/pomander/master/bin/install | bash; cd public && bower install"
   },
   "dependencies": {
     "adapter": "0.0.1",
@@ -22,7 +22,6 @@
     "express": "^4.14.0",
     "jquery": "^2.2.1",
     "kurento-client": "^6.6.0",
-    "kurento-utils": "^6.6.0",
     "mongoose": "^4.6.5",
     "react": "^0.14.7",
     "react-dom": "^0.14.7",
