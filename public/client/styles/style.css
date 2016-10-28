@@ -76,7 +76,12 @@ body {
   font-family: Verdana;
   font-size: 4em;
   font-weight: bold;
-  text-decoration: none;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* Internet Explorer/Edge */
+  cursor: pointer;
 }
 
 .round-button-stop {
@@ -92,7 +97,12 @@ body {
   font-family: Verdana;
   font-size: 2em;
   font-weight: bold;
-  text-decoration: none;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* Internet Explorer/Edge */
+  cursor: pointer;
 }
 
 .round-button-play {
@@ -103,20 +113,18 @@ body {
   padding-bottom: 50%;
 	line-height: 1em;
 	margin-top: -0.5em;
+	margin-left: .1em;
 	text-align: center;
-	color: red;
+	color: green;
   font-family: Verdana;
-  font-size: 3em;
+  font-size: 2.2em;
   font-weight: bold;
-  text-decoration: none;
-}
-
-#play {
-	margin-top: -0.5em;
-	margin-left: 0.1em;
-	text-align: center;
-	color: black;
-  font-size: 1.5em;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* Internet Explorer/Edge */
+  cursor: pointer;
 }
 
 .meta {
@@ -126,6 +134,9 @@ body {
 	background: #5e6382;
 	border-radius: 5px;
 	text-align: center;
+}
+.meta h2 {
+	color: #f7f2e8;
 }
 
 .meta label {
@@ -153,4 +164,16 @@ body {
 
 #desc{
 	height: 245px;
+}
+.playlistContainer{
+	height:330px;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+.playlistTable {
+	color: #ede8de;
+	margin: 0 20px;
+}
+.playlistTable td {
+	padding: 2px 10px;
 }

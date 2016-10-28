@@ -47,7 +47,7 @@ app.put('/api/recording/:id', (req, res) =>
 );
 
 // get list of recordings (returns list of recording IDs)
-app.get('/api/recordings', (req, res) =>
+app.post('/api/recordings', (req, res) =>
   mediaRepo.findItems(req.body).then(data => res.status(200).json(data)).catch(err => res.status(500).json(err))
 );
 

@@ -31,7 +31,7 @@ class Recorder extends React.Component {
 
     if (!this.state.recordingState) {
       // FIXME
-      var metadata = { username: 'anon', title: 'first record', description: 'party time' };
+      var metadata = { username: 'ERIC', title: 'first record', description: 'party time' };
       var node = document.getElementsByClassName('audioInput')[0];
 
       // ask for a new item url for recording
