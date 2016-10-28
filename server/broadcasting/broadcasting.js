@@ -13,7 +13,9 @@ const ws = require('ws');
 const co = require('co');
 const kurentoClient = require('kurento-client');
 
-const kmsWsUri = 'wss://138.197.196.39:8433/kurento'; // kurento client websocket
+const kmsWsUri = 'ws://138.197.196.39:8888/kurento'; // kurento client websocket
+//const kmsWsUri = 'wss://138.197.196.39:8433/kurento'; // kurento client websocket - FIXME not working
+const wssPath = '/audio'; // secure server websocket pathname
 
 let idCounter = 0;
 let candidatesQueue = {};
@@ -33,12 +35,19 @@ const nextUniqueId = () => {
   return idCounter.toString();
 };
 
+const onError = error => {
+  if (error) {
+    stop(sessionId);
+    return callback(error);
+  }
+};
+
 const startWss = server => {
   // websocket server setup (for client communications)
   info('secure websocket for client communications starting');
   const wss = new ws.Server({
     server: server,
-    path: '/audio'
+    path: wssPath
   });
 
   // Management of WebSocket messages
@@ -66,7 +75,7 @@ const startWss = server => {
 
         startBroadcaster(sessionId, ws, message.sdpOffer, (error, sdpAnswer) => {
           if (error) {
-            console.error(error);
+            error(error);
             return ws.send(JSON.stringify({
               id: 'broadcasterResponse',
               response: 'rejected',
@@ -123,25 +132,6 @@ const startWss = server => {
   });
 };
 
-// Recover kurentoClient for the first time
-const getktClient = (sessionId, callback) => {
-  if (ktClient[sessionId]) {
-    return callback(null, ktClient[sessionId]);
-  }
-
-  info('HERE: calling kurento to get a client for session ' + sessionId);
-  kurentoClient(kmsWsUri, (error, _ktClient) => {
-    if (error) {
-      log(`Could not find media server at address ${kmsWsUri}`);
-      return callback(`Could not find media server at address ${kmsWsUri}. Exiting with error ${error}`);
-    }
-
-    info('NOW: got kurento client for session ' + sessionId);
-    ktClient[sessionId] = _ktClient;
-    callback(null, ktClient[sessionId]);
-  });
-};
-
 const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
   let host = broadcasterUser[sessionId];
 
@@ -163,19 +153,14 @@ const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
     try {
       if (!ktClient[sessionId]) { ktClient[sessionId] = yield kurentoClient(kmsWsUri); }
 
-      console.log('Got client instance from kurento');
-
       // create media pipeline
       let pipeline = yield ktClient[sessionId].create('MediaPipeline');
       broadcasters[host].pipeline = pipeline;
-
-      log('Media pipeline created for session ' + sessionId);
 
       // create webrtc endpoint
       let webRtcEndpoint = yield pipeline.create('WebRtcEndpoint');
       broadcasters[host].webRtcEndpoint = webRtcEndpoint;
 
-      //setIceCandidateCallbacks(webRtcPeer, webRtc, audioRecorder.onError);
       webRtcEndpoint.on('OnIceCandidate', event => {
         let candidate = kurentoClient.getComplexType('IceCandidate')(event.candidate);
         log('Sending ICE candidate for session ' + sessionId);
@@ -194,14 +179,7 @@ const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
       }
 
       let sdpAnswer = yield webRtcEndpoint.processOffer(sdpOffer);
-
-      webRtcEndpoint.gatherCandidates(error => {
-        if (error) {
-          stop(sessionId);
-          return callback(error);
-        }
-      });
-
+      webRtcEndpoint.gatherCandidates(onError);
       // send sdpAnswer back to client
       callback(null, sdpAnswer);
 
@@ -214,20 +192,13 @@ const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
       broadcasters[host].recorderEndpoint = recorderEndpoint;
 
       // connect
-      yield webRtc.connect(recorder);
-      yield webRtc.connect(webRtc);
+      yield webRtcEndpoint.connect(recorderEndpoint);
+      yield webRtcEndpoint.connect(webRtcEndpoint);
 
       // start recorder
-      yield recorder.record();
+      yield recorderEndpoint.record();
 
-    } catch (error) {
-
-      if (error) {
-        stop(sessionId);
-        return callback(error);
-      }
-
-    }
+    } catch (error) { onError(error); }
   });
 };
 
@@ -237,31 +208,46 @@ const startListener = (sessionId, ws, sdpOffer, callback) => {
   clearCandidatesQueue(sessionId);
 
   let fileUri, listenerStream, host, listenerErrorMessage;
-  if (streamId.toString().match(/^http/)) {
-    // pre-recorded broadcast
+
+  if (streamId.toString().match(/^http/)) { // pre-recorded broadcast
     fileUri = streamId;
     listenerStream = {
       id: sessionId,
       pipeline: null,
-      webRtcEndpoint: null
+      webRtcEndpoint: null,
+      playerEndpoint: null
     };
     playerStream[sessionId] = listenerStream;
     listenerErrorMessage = `An error happened while trying to listen to ${fileUri} for session ${sessionId}`;
-  } else {
-    // live broadcast
+
+    co(function *() {
+      try {
+        if (!ktClient[sessionId]) { ktClient[sessionId] = yield kurentoClient(kmsWsUri); }
+
+        // create media pipeline
+        let pipeline = yield ktClient[sessionId].create('MediaPipeline');
+        listenerStream.pipeline = pipeline;
+
+      } catch (error) { onError(error); }
+    });
+
+  } else { // live broadcast
     host = streamId;
     listenerStream = broadcasters[host];
     listenerErrorMessage = noBroadcasterMessage;
+
+    if (!listenerStream) {
+      stop(sessionId);
+      return callback(listenerErrorMessage);
+    }
   }
 
-  const createEndpoints = fileUri => {
-    listenerStream.pipeline.create('WebRtcEndpoint', (error, webRtcEndpoint) => {
-      if (error) {
-        stop(sessionId);
-        return callback(error);
-      }
+  co(function *() {
+    try {
+      let webRtcEndpoint = yield listenerStream.pipeline.create('WebRtcEndpoint');
+      listenerStream.webRtcEndpoint = webRtcEndpoint;
 
-      if (host) {
+      if (host) { // live broadcast
         if (!listeners[host]) {
           listeners[host] = {};
         }
@@ -291,101 +277,32 @@ const startListener = (sessionId, ws, sdpOffer, callback) => {
         }));
       });
 
-      webRtcEndpoint.processOffer(sdpOffer, (error, sdpAnswer) => {
-        if (error) {
-          stop(sessionId);
-          return callback(error);
-        }
-        if (!listenerStream) {
-          stop(sessionId);
-          return callback(listenerErrorMessage);
-        }
+      let sdpAnswer = yield webRtcEndpoint.processOffer(sdpOffer);
+      webRtcEndpoint.gatherCandidates(onError);
+      // send sdpAnswer back to client
+      callback(null, sdpAnswer);
 
-        listenerStream.webRtcEndpoint.connect(webRtcEndpoint, error => {
-          if (error) {
-            stop(sessionId);
-            return callback(error);
-          }
-          if (!listenerStream) {
-            stop(sessionId);
-            return callback(listenerErrorMessage);
-          }
-
-          callback(null, sdpAnswer);
-          webRtcEndpoint.gatherCandidates(error => {
-            if (error) {
-              stop(sessionId);
-              return callback(error);
-            }
-          });
-        });
-      });
-
-      if (fileUri) {
+      if (fileUri) { // pre-recorded broadcast
         // create player endpoint
-        let options = { uri: fileUri, mediaProfile: 'WEBM_AUDIO_ONLY' };
-        listenerStream.pipeline.create('PlayerEndpoint', options, (error, player) => {
-          if (error) {
-            stop(sessionId);
-            return callback(error);
-          }
-
-          player.on('EndOfStream', event => {
-            stop(sessionId);
-            return callback(null, event);
-          });
-
-          player.connect(webRtc, error => {
-            if (error) {
-              stop(sessionId);
-              return callback(error);
-            }
-
-            player.play(error => {
-              if (error) {
-                stop(sessionId);
-                return callback(error);
-              }
-
-              log('Playing ' + fileUri + ' for ' + sessionId);
-            });
-          });
+        let player = yield listenerStream.pipeline.create('PlayerEndpoint', {
+          uri: fileUri,
+          mediaProfile: 'WEBM_AUDIO_ONLY' // audio only
         });
-      }
+        listenerStream.playerEndpoint = player;
 
-    });
-  };
-
-  // pre-recorded broadcast
-  if (fileUri) {
-
-    getKurentoClient(sessionId, (error, ktClient) => {
-      if (error) {
-        stop(sessionId);
-        return callback(error);
-      }
-
-      ktClient.create('MediaPipeline', (error, pipeline) => {
-        if (error) {
+        player.on('EndOfStream', event => {
           stop(sessionId);
-          return callback(error);
-        }
+          return callback(null, event);
+        });
 
-        listenerStream.pipeline = pipeline;
-        createEndpoints(fileUri);
-      });
-    });
+        yield player.connect(webRtcEndpoint);
+        yield player.play(onError);
+      }
 
-  } else {
+      yield webRtcEndpoint.connect(webRtcEndpoint);
 
-    if (!listenerStream) {
-      stop(sessionId);
-      return callback(listenerErrorMessage);
-    }
-    createEndpoints();
-
-  }
-
+    } catch (error) { onError(error); }
+  });
 };
 
 const clearCandidatesQueue = sessionId => {
@@ -441,7 +358,7 @@ const stop = sessionId => {
   }
 
   // FIXME? we could delete broadcasterUser[sessionId] here or set it to null
-  // but sessionIds should not get re-used
+  // sessionIds should not get re-used, so it should not matter
 };
 
 const onIceCandidate = (sessionId, _candidate) => {

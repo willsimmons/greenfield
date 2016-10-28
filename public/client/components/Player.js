@@ -4,6 +4,12 @@ import $ from 'jquery';
 import PlaylistItem from 'PlaylistItem';
 import audioPlayer from '../player/AudioPlayer2';
 
+let myDebug = require('debug');
+myDebug.enable('Player:*');
+const log = myDebug('Player:log');
+const info = myDebug('Player:info');
+const error = myDebug('Player:error');
+
 class Player extends React.Component {
 
   constructor(props) {
