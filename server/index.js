@@ -1,13 +1,14 @@
 'use strict';
 
 // debug ====================================================================
-var debug = require('debug');
+const debug = require('debug');
 debug.enable('server:*');
-var log = debug('server:log');
-var info = debug('server:info');
-var error = debug('server:error');
+const log = debug('server:log');
+const info = debug('server:info');
+const error = debug('server:error');
 
 // set up ===================================================================
+const Promise = require('bluebird');
 const path = require('path');
 const express = require('express');
 const expressSession = require('express-session');
@@ -17,12 +18,13 @@ const flash = require('flash');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const LocalStrategy = require('passport-local').Strategy;
 const mongoose = require('mongoose');
 const db = require('./config/db.js');
 const password = require('./config/secret.js');
-const Promise = require('bluebird');
-let LocalStrategy = require('passport-local').Strategy;
 const mediaRepo = require('./media-repo/media-repo');
+const broadcasting = require('./broadcasting/broadcasting');
+
 const port = process.env.PORT || 8000;
 
 const app = express();
