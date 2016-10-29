@@ -20,7 +20,8 @@ class Player extends React.Component {
       className: 'round-button-play',
       status: null,
       playlist: [],
-      currentTrack: {username: '', title: '', description: ''}
+      currentTrack: {username: '', title: '', description: ''},
+      ws: props.route.ws
     };
   }
 

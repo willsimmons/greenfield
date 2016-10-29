@@ -8,8 +8,7 @@ let audioPlayer = {
   set: (v, val) => { audioPlayer[v] = val; },
   get: v => audioPlayer[v],
 
-  kmsWsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket URI
-  wsUri: `wss://${location.hostname}:8443/audio`, // secure websocket URI with server
+  kmsWsUri: 'wss://radradio.stream:8433/kurento', // Kurento secure websocket URI
   ws: null, // secure websocket with server
 
   IDLE: 0,
@@ -26,17 +25,16 @@ let audioPlayer = {
   audioNode: null,
   user: null,
 
-  init: (statusUpdate, processMessage) => {
+  init: (statusUpdate, ws, processMessage) => {
     audioPlayer.statusUpdate = statusUpdate;
     audioPlayer.webRtcPeer = null;
     audioPlayer.client = null;
     audioPlayer.setStatus(audioPlayer.IDLE);
-    audioPlayer.wsInit(processMessage);
+    audioPlayer.wsInit(ws, processMessage);
   },
 
-  wsInit: processMessage => {
-    // open websocket
-    audioPlayer.ws = new WebSocket(audioPlayer.wsUri);
+  wsInit: (ws, processMessage) => {
+    audioPlayer.ws = ws;
 
     // setup communication handler
     audioPlayer.ws.onmessage = message => {

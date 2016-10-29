@@ -193,20 +193,24 @@ app.get('*', (req, res, next) =>
 );
 
 // key/certificate for https server
+const sslPath = process.env.SSL_PATH || '/etc/letsencrypt/live/radradio.stream/';
 const options = {
-  key: fs.readFileSync(__dirname + '/keys/server.key'),
-  cert: fs.readFileSync(__dirname + '/keys/server.crt')
+  key: fs.readFileSync(sslPath + 'privkey.pem'),
+  cert: fs.readFileSync(sslPath + 'fullchain.pem')
 };
 
 // listen (start app with node / nodemon index.js) ==========================
 // secure server setup
-const server = https.createServer(options, app).listen(port, err => {
+const server = https.createServer(options, app);
+broadcasting.startWss(server);
+
+// start server
+server.listen(port, err => {
   if (err) {
     error('Error while trying to start the server (port already in use maybe?)');
     return err;
   }
   info(`secure server listening on port ${port}`);
-  broadcasting.startWss(server);
 });
 
 module.exports = app;

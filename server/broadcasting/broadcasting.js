@@ -13,8 +13,9 @@ const ws = require('ws');
 const co = require('co');
 const kurentoClient = require('kurento-client');
 
-const kmsWsUri = 'ws://138.197.196.39:8888/kurento'; // kurento client websocket
-//const kmsWsUri = 'wss://138.197.196.39:8433/kurento'; // kurento client websocket - FIXME not working
+// using secure websocket
+//const kmsWsUri = 'ws://radradio.stream:8888/kurento'; // kurento client non-secure websocket
+const kmsWsUri = `wss://radradio.stream:8433/kurento`; // kurento client secure websocket
 const wssPath = '/audio'; // secure server websocket pathname
 
 let idCounter = 0;
