@@ -18,7 +18,8 @@ class Player extends React.Component {
       playId: null,
       playBtn: '▶',
       className: 'round-button-play',
-      status: null
+      status: null,
+      ws: props.route.ws
     };
   }
 

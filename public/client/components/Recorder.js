@@ -18,7 +18,8 @@ class Recorder extends React.Component {
       recordId: null,
       recordBtn: '●',
       className: 'round-button-record',
-      status: null
+      status: null,
+      ws: props.route.ws
     };
   }
 
@@ -27,7 +28,7 @@ class Recorder extends React.Component {
   }
 
   init() {
-    audioRecorder.init(this.statusUpdate.bind(this));
+    audioRecorder.init(this.statusUpdate.bind(this), this.state.ws);
     log('init');
   }
 
