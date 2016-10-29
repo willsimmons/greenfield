@@ -165,6 +165,11 @@ body {
 #desc{
 	height: 245px;
 }
+
+.trackInfo span{
+	padding: 0px 10px 30px 10px;
+}
+
 .playlistContainer{
 	height:330px;
 	overflow-y: scroll;

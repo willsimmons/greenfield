@@ -8,7 +8,6 @@ class PlaylistItem extends React.Component {
     this.state = {
       done: false
     }
-    console.log('PlaylistItem', props)
   };
 
   render() {

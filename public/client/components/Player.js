@@ -14,7 +14,7 @@ class Player extends React.Component {
       className: 'round-button-play',
       status: null,
       playlist: [],
-      currentTrack: {username: 'a', title: 'a', description: 'a'}
+      currentTrack: {username: '', title: '', description: ''}
     };
   }
 
@@ -31,18 +31,14 @@ class Player extends React.Component {
     audioPlayer.init(this.statusUpdate.bind(this));
 
     $.post('http://localhost:8000/api/recordings', query, data => {
-      console.log('playlist received: ');
+      console.log('playlist received');
 
       var results = [];
 
       for (var i = 0; i < data.length; i++) {
         $.get('http://localhost:8000/api/recording/' + data[i], item => {
-          console.log('pushing ');
           results.push(item);
-          context.setState({playlist: results});
-          if (i === 0) {
-            context.setState({currentTrack: item});
-          }
+          context.setState({playlist: results, currentTrack: results[0]});
         });
       }
 
@@ -55,6 +51,7 @@ class Player extends React.Component {
   }
 
   handleClick(item) {
+    console.log('click', item)
     var node = document.getElementsByClassName('audioOutput')[0];
     var context = this;
 
@@ -96,7 +93,7 @@ class Player extends React.Component {
           <h2>Track Information</h2>
           <div className="trackInfo">
             <p>
-              <span>{this.state.currentTrack.username}</span>
+              <span><strong>{this.state.currentTrack.username}</strong></span>
               <span>{this.state.currentTrack.title}</span>
               <span>{this.state.currentTrack.description}</span>
             </p>
@@ -104,9 +101,11 @@ class Player extends React.Component {
           <h2>Playlist</h2>
           <div className="playlistContainer">
             <table className="playlistTable">
-              {this.state.playlist.map(item =>
-                <PlaylistItem handleClick={this.handleClick.bind(this)} key={item.id} item={item} />
-              )}
+              <tbody>
+                {this.state.playlist.map(item =>
+                  <PlaylistItem handleClick={this.handleClick.bind(this)} key={item.id} item={item} />
+                )}
+              </tbody>
             </table>
           </div>
         </div>
