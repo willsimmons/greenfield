@@ -54,7 +54,16 @@ class Player extends React.Component {
   }
 
   statusUpdate(status) {
-    this.setState({status: status});
+    this.setState({ status: status });
+    this.updatePlayer(status);
+  }
+
+  updatePlayer(status) {
+    if (status === 'IDLE') {
+      this.setState({ playBtn: '▶', className: 'round-button-play' });
+    } else {
+      this.setState({ playBtn: '■', className: 'round-button-stop' });
+    }
   }
 
   handleClick(item) {
@@ -63,17 +72,28 @@ class Player extends React.Component {
     var context = this;
 
     if (this.state.status === 'IDLE') {
-        audioPlayer.start(item.id, node);
-        context.setState({playBtn: '■', className: 'round-button-stop', currentTrack: item });
-
+      start = true;
     } else {
-      if (item === this.state.currentTrack) {
-        audioPlayer.stop();
-      } else {
-        audioPlayer.stop();
-        audioPlayer.start(item.id, node);
+      audioPlayer.stop();
+      if (item !== this.state.currentTrack) {
+        start = true;
       }
-      context.setState({playBtn: '▶', className: 'round-button-play' });
+    }
+
+    if (start) {
+      this.setState({ currentTrack: item });
+
+      let testingLive = false;
+      if (testingLive) {
+        // to test live streaming
+        audioPlayer.start('recorder_user', this.state.node, 'gilles');
+      } else {
+        $.get('/api/recording/' + item.id, data => {
+          if (!data.status) {
+            audioPlayer.start(data.url, this.state.node, 'gilles');
+          }
+        });
+      }
     }
   }
 
