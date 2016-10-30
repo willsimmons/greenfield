@@ -86,7 +86,6 @@ class Recorder extends React.Component {
 
     <div className="recorder">
       <h1>Recorder</h1>
-      <audio controls autoPlay className="audioInput"></audio>
       <div className="controls">
         <div className="round-button">
           <div className="round-button-circle">
@@ -101,6 +100,7 @@ class Recorder extends React.Component {
         <div>TEST ID: {this.state.recordId}</div>
         <div>STATUS: {this.state.status}</div>
       </div>
+      <audio controls autoPlay className="audioInput"></audio>
 
       <div className="meta">
         <label htmlFor="title">Title</label>
