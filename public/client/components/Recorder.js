@@ -31,7 +31,7 @@ class Recorder extends React.Component {
 
     if (!this.state.recordingState) {
       // FIXME
-      var metadata = { username: 'anon', title: 'first record', description: 'party time' };
+      var metadata = { username: 'ERIC', title: 'first record', description: 'party time' };
       var node = document.getElementsByClassName('audioInput')[0];
 
       // ask for a new item url for recording
@@ -86,7 +86,6 @@ class Recorder extends React.Component {
 
     <div className="recorder">
       <h1>Recorder</h1>
-      <audio controls autoPlay className="audioInput"></audio>
       <div className="controls">
         <div className="round-button">
           <div className="round-button-circle">
@@ -101,6 +100,7 @@ class Recorder extends React.Component {
         <div>TEST ID: {this.state.recordId}</div>
         <div>STATUS: {this.state.status}</div>
       </div>
+      <audio controls autoPlay className="audioInput"></audio>
 
       <div className="meta">
         <label htmlFor="title">Title</label>
