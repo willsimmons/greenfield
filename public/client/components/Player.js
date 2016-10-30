@@ -3,7 +3,6 @@ import React from 'react';
 import $ from 'jquery';
 import PlaylistItem from 'PlaylistItem';
 import audioPlayer from '../player/AudioPlayer2';
-import visualizer from '../visualizer/visualizer';
 
 let myDebug = require('debug');
 myDebug.enable('Player:*');
@@ -31,7 +30,6 @@ class Player extends React.Component {
     let node = document.getElementsByClassName('audioOutput')[0];
     this.setState({ node: node });
     this.init();
-    visualizer.initAudio(node);
   }
 
   init() {
@@ -60,11 +58,11 @@ class Player extends React.Component {
 
   statusUpdate(status) {
     this.setState({ status: status });
-    this.updatePlayer();
+    this.updatePlayer(status);
   }
 
-  updatePlayer() {
-    if (this.state.status === 'IDLE') {
+  updatePlayer(status) {
+    if (status === 'IDLE') {
       this.setState({ playBtn: '▶', className: 'round-button-play' });
     } else {
       this.setState({ playBtn: '■', className: 'round-button-stop' });
@@ -83,18 +81,21 @@ class Player extends React.Component {
         start = true;
       }
     }
-    this.setState({ currentTrack: item });
 
-    let testingLive = false;
-    if (testingLive) {
-      // to test live streaming
-      audioPlayer.start('recorder_user', this.state.node, 'gilles');
-    } else {
-      $.get('/api/recording/' + item.id, data => {
-        if (!data.status) {
-          audioPlayer.start(data.url, this.state.node, 'gilles');
-        }
-      });
+    if (start) {
+      this.setState({ currentTrack: item });
+
+      let testingLive = false;
+      if (testingLive) {
+        // to test live streaming
+        audioPlayer.start('recorder_user', this.state.node, 'gilles');
+      } else {
+        $.get('/api/recording/' + item.id, data => {
+          if (!data.status) {
+            audioPlayer.start(data.url, this.state.node, 'gilles');
+          }
+        });
+      }
     }
   }
 
@@ -102,9 +103,6 @@ class Player extends React.Component {
     return (
       <div className="player">
         <h1>Player</h1>
-        <div id="viz">
-          <canvas id="analyser" width="1024" height="200"></canvas>
-        </div>
         <audio controls autoPlay className="audioOutput"></audio>
         <div className="controls">
           <div className="round-button">

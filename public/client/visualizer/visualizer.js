@@ -1,6 +1,7 @@
 // // Bind our analyser to the media element source.
 // audioSrc.connect(analyser);
 // audioSrc.connect(audioCtx.destination);
+import $ from 'jquery';
 
 let myDebug = require('debug');
 myDebug.enable('Visualizer:*');
@@ -10,11 +11,10 @@ const error = myDebug('Visualizer:error');
 
 let audioContext, canvas, canvasWidth, canvasHeight, analyserContext, analyserNode, numBars, audioSrc;
 
-let SPACING = 3;
-let BAR_WIDTH = 1;
+let SPACING = 5;
+let BAR_WIDTH = 3;
 
 const updateAnalysers = time => {
-
   let freqByteData = new Uint8Array(analyserNode.frequencyBinCount);
 
   analyserNode.getByteFrequencyData(freqByteData);
@@ -38,29 +38,51 @@ const updateAnalysers = time => {
     analyserContext.fillRect(i * SPACING, canvasHeight, BAR_WIDTH, -magnitude);
   }
 
-  let rafId = window.requestAnimationFrame( updateAnalysers );
+  let drawVisual = window.requestAnimationFrame( updateAnalysers );
 };
 
-const gotStream = (stream, audioElement) => {
-  let inputPoint = audioContext.createGain();
-
-  // Create an AudioNode from the stream.
-  let realAudioInput;
-  if (audioElement) {
-    realAudioInput = audioContext.createMediaElementSource(audioElement);
-  } else {
-    realAudioInput = audioContext.createMediaStreamSource(stream);
-  }
-  realAudioInput.connect(inputPoint);
-
+const gotStream = input => {
   analyserNode = audioContext.createAnalyser();
   analyserNode.fftSize = 2048;
-  inputPoint.connect(analyserNode);
 
-  let zeroGain = audioContext.createGain();
-  zeroGain.gain.value = 0.0;
-  inputPoint.connect(zeroGain);
-  zeroGain.connect(audioContext.destination);
+  if (input.__proto__.toString() === '[object HTMLAudioElement]') {
+
+    info('Connecting audio analyser to', input);
+    input.addEventListener('canplay', () => {
+      let source = audioContext.createMediaElementSource(input);
+      source.connect(analyserNode);
+      analyserNode.connect(audioContext.destination);
+
+      // let inputPoint = audioContext.createGain();
+      //
+      // // Create an AudioNode from the stream.
+      // let source = audioContext.createMediaElementSource(this);
+      // source.connect(inputPoint);
+      // inputPoint.connect(analyserNode);
+      //
+      // let zeroGain = audioContext.createGain();
+      // zeroGain.gain.value = 0.0;
+      // inputPoint.connect(zeroGain);
+      // zeroGain.connect(audioContext.destination);
+
+    });
+
+  } else if (input.__proto__.toString() === '[object MediaStream]') {
+
+    let inputPoint = audioContext.createGain();
+
+    // Create an AudioNode from the stream.
+    let source = audioContext.createMediaStreamSource(input);
+    source.connect(inputPoint);
+    inputPoint.connect(analyserNode);
+
+    let zeroGain = audioContext.createGain();
+    zeroGain.gain.value = 0.0;
+    inputPoint.connect(zeroGain);
+    zeroGain.connect(audioContext.destination);
+
+  }
+
   updateAnalysers();
 };
 
@@ -87,7 +109,7 @@ let visualizer = {
     numBars = Math.round(canvasWidth / SPACING);
 
     if (audioElement) {
-      gotStream(null, audioElement);
+      gotStream(audioElement);
     } else {
       navigator.getUserMedia({
         'audio': {
