@@ -60,10 +60,10 @@ app.get('*', (req, res) =>
 );
 
 // key/certificate for https server
-const sslPath = process.env.SSL_PATH || '/etc/letsencrypt/live/radradio.stream/';
+const sslPath = process.env.SSL_PATH || '/etc/letsencrypt/live/radradio.stream';
 const options = {
-  key: fs.readFileSync(sslPath + 'privkey.pem'),
-  cert: fs.readFileSync(sslPath + 'fullchain.pem')
+  key: fs.readFileSync(sslPath + '/privkey.pem'),
+  cert: fs.readFileSync(sslPath + '/fullchain.pem')
 };
 
 // secure server setup

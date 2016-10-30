@@ -6,30 +6,29 @@ const log = debug('broadcasting:log');
 const info = debug('broadcasting:info');
 const error = debug('broadcasting:error');
 
-const fs = require('fs');
-const debugLog = msg => fs.appendFileSync('debug.log', msg + '\n');
-debugLog('start');
 const ws = require('ws');
 const co = require('co');
 const kurentoClient = require('kurento-client');
 
 // using secure websocket
 //const kmsWsUri = 'ws://radradio.stream:8888/kurento'; // kurento client non-secure websocket
-const kmsWsUri = `wss://radradio.stream:8433/kurento`; // kurento client secure websocket
+const kmsWsUri = 'wss://radradio.stream:8433/kurento'; // kurento client secure websocket
 const wssPath = '/audio'; // secure server websocket pathname
 
+let wss; // websocket server
 let idCounter = 0;
 let candidatesQueue = {};
 let ktClient = {};
 
-let broadcasters = {}; // hash of broadcasters
-let listeners = {}; // listeners[host] is a hash of listeners for host
-let broadcasterUser = {}; // hash of broadcast hosts
-let listenerUser = {}; // hash of broadcast listeners
-let playerStream = {}; // hash of player streams (pre-recorded broadcasts)
-let stream = {}; // hash of stream identifiers (recording url for broadcaster, file url or user id for listener)
-
-const noBroadcasterMessage = 'Not an active broadcaster at this time. Try again later...';
+let sessionInfo = {}; // get session id from broadcast host user id
+let broadcasterStream = {}; // hash of broadcaster streams per sessionId
+let listenerStream = {}; // hash of listener streams per sessionId
+let listeners = {}; // hash of listeners per host sessionId
+let broadcasterUser = {}; // hash of broadcast hosts per sessionId
+let listenerUser = {}; // hash of broadcast listeners per sessionId
+let recording = {}; // hash of recording identifiers per sessionId (recording url for broadcaster)
+let listening = {}; // hash of listening identifiers per sessionId (file url or broadcaster user id for listener)
+let liveNow = {}; // hash of broadcasters who are live per session Id
 
 const nextUniqueId = () => {
   idCounter++;
@@ -43,13 +42,23 @@ const onError = error => {
   }
 };
 
+// tell everyone who is live now
+const liveNowUpdate = () => {
+  wss.clients.forEach(client => {
+    client.send(JSON.stringify({
+      id: 'livenow',
+      broadcasters: Object.keys(liveNow).map(key => liveNow[key]) || []
+    }));
+  });
+};
+
 const startWss = server => {
   // websocket server setup (for client communications)
-  info('secure websocket for client communications starting');
-  const wss = new ws.Server({
+  wss = new ws.Server({
     server: server,
     path: wssPath
   });
+  info('secure websocket server enabled');
 
   // Management of WebSocket messages
   wss.on('connection', ws => {
@@ -66,13 +75,13 @@ const startWss = server => {
       stop(sessionId);
     });
 
-    ws.on('message', _message => {
-      let message = JSON.parse(_message);
+    ws.on('message', unparsedMessage => {
+      let message = JSON.parse(unparsedMessage);
       log('Connection for session ' + sessionId + ' received message ', message);
 
       if (message.id === 'broadcaster') {
         broadcasterUser[sessionId] = message.user; // save broadcaster host
-        stream[sessionId] = message.streamId; // recording file url
+        recording[sessionId] = message.streamId; // recording file url
 
         startBroadcaster(sessionId, ws, message.sdpOffer, (error, sdpAnswer) => {
           if (error) {
@@ -90,14 +99,17 @@ const startWss = server => {
             response: 'accepted',
             sdpAnswer: sdpAnswer
           }));
+
+          liveNow[sessionId] = broadcasterUser[sessionId];
+          liveNowUpdate(); // update everyone on live broadcasters
         });
 
       } else if (message.id === 'listener') {
         listenerUser[sessionId] = message.user; // save listener user
-        stream[sessionId] = message.streamId; // user id (live streaming) or file url (pre-recorded broadcast)
+        listening[sessionId] = message.streamId; // user id (live streaming) or file url (pre-recorded broadcast)
 
         if (!message.streamId.toString().match(/^http/)) {
-          broadcasterUser[sessionId] = message.streamId;
+          broadcasterUser[sessionId] = message.streamId; // set broadcast host
         }
 
         startListener(sessionId, ws, message.sdpOffer, (error, sdpAnswer) => {
@@ -122,6 +134,19 @@ const startWss = server => {
       } else if (message.id === 'onIceCandidate') {
         onIceCandidate(sessionId, message.candidate);
 
+      } else if (message.id === 'pause') {
+        playerPause(sessionId);
+
+      } else if (message.id === 'resume') {
+        playerResume(sessionId);
+        sendAudioInfo(sessionId);
+
+      } else if (message.id === 'doSeek') {
+        doSeek(sessionId, message.position);
+
+      } else if (message.id === 'getPosition') {
+        sendPosition(sessionId);
+
       } else {
         ws.send(JSON.stringify({
           id: 'error',
@@ -134,16 +159,18 @@ const startWss = server => {
 };
 
 const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
+  info('NEW BROADCASTER for session ' + sessionId);
   let host = broadcasterUser[sessionId];
 
-  clearCandidatesQueue(sessionId);
-
-  if (broadcasters[host]) {
+  if (sessionInfo[host]) { // this means a host can only do one broadcasting at a time
     stop(sessionId);
     return callback('You are already acting as broadcaster in another session.');
   }
+  sessionInfo[host] = sessionId;
 
-  broadcasters[host] = {
+  clearCandidatesQueue(sessionId);
+
+  broadcasterStream[sessionId] = {
     id: sessionId,
     pipeline: null,
     webRtcEndpoint: null,
@@ -156,11 +183,11 @@ const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
 
       // create media pipeline
       let pipeline = yield ktClient[sessionId].create('MediaPipeline');
-      broadcasters[host].pipeline = pipeline;
+      broadcasterStream[sessionId].pipeline = pipeline;
 
       // create webrtc endpoint
       let webRtcEndpoint = yield pipeline.create('WebRtcEndpoint');
-      broadcasters[host].webRtcEndpoint = webRtcEndpoint;
+      broadcasterStream[sessionId].webRtcEndpoint = webRtcEndpoint;
 
       webRtcEndpoint.on('OnIceCandidate', event => {
         let candidate = kurentoClient.getComplexType('IceCandidate')(event.candidate);
@@ -185,12 +212,11 @@ const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
       callback(null, sdpAnswer);
 
       // create recorder pointing to our recording url
-      let fileUri = stream[sessionId];
       let recorderEndpoint = yield pipeline.create('RecorderEndpoint', {
-        uri: fileUri,
+        uri: recording[sessionId],
         mediaProfile: 'WEBM_AUDIO_ONLY' // audio only
       });
-      broadcasters[host].recorderEndpoint = recorderEndpoint;
+      broadcasterStream[sessionId].recorderEndpoint = recorderEndpoint;
 
       // connect
       yield webRtcEndpoint.connect(recorderEndpoint);
@@ -204,64 +230,70 @@ const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
 };
 
 const startListener = (sessionId, ws, sdpOffer, callback) => {
-  let streamId = stream[sessionId]; // get stream identifier
+  info('NEW LISTENER for session ' + sessionId);
+  let listener = listenerUser[sessionId];
 
   clearCandidatesQueue(sessionId);
 
-  let fileUri, listenerStream, host, listenerErrorMessage;
+  let fileUri, host, listenerErrorMessage;
 
-  if (streamId.toString().match(/^http/)) { // pre-recorded broadcast
-    fileUri = streamId;
-    listenerStream = {
+  if (!broadcasterUser[sessionId]) { // pre-recorded broadcast
+
+    fileUri = listening[sessionId];
+    listenerStream[sessionId] = {
       id: sessionId,
       pipeline: null,
       webRtcEndpoint: null,
-      playerEndpoint: null
+      playerEndpoint: null,
+      ws: ws
     };
-    playerStream[sessionId] = listenerStream;
+
     listenerErrorMessage = `An error happened while trying to listen to ${fileUri} for session ${sessionId}`;
-
-    co(function *() {
-      try {
-        if (!ktClient[sessionId]) { ktClient[sessionId] = yield kurentoClient(kmsWsUri); }
-
-        // create media pipeline
-        let pipeline = yield ktClient[sessionId].create('MediaPipeline');
-        listenerStream.pipeline = pipeline;
-
-      } catch (error) { onError(error); }
-    });
+    info('Listening to pre-recorded broadcast: ', fileUri);
 
   } else { // live broadcast
-    host = streamId;
-    listenerStream = broadcasters[host];
-    listenerErrorMessage = noBroadcasterMessage;
 
-    if (!listenerStream) {
-      stop(sessionId);
-      return callback(listenerErrorMessage);
-    }
+    host = listening[sessionId];
+    listenerStream[sessionId] = {
+      id: sessionId,
+      // no pipeline as we are using the broadcast host pipeline
+      webRtcEndpoint: null,
+      ws: ws
+    };
+
+    listenerErrorMessage = 'Not an active broadcaster at this time. Try again later...';
+    info('Listening to host:', host);
+
   }
 
   co(function *() {
     try {
-      let webRtcEndpoint = yield listenerStream.pipeline.create('WebRtcEndpoint');
-      listenerStream.webRtcEndpoint = webRtcEndpoint;
+      let pipeline, broadcasterWebRtcEndpoint;
+
+      if (fileUri) { // pre-recorded broadcast
+        if (!ktClient[sessionId]) { ktClient[sessionId] = yield kurentoClient(kmsWsUri); }
+
+        // create media pipeline
+        listenerStream[sessionId].pipeline = yield ktClient[sessionId].create('MediaPipeline');
+        pipeline = listenerStream[sessionId].pipeline;
+      }
 
       if (host) { // live broadcast
-        if (!listeners[host]) {
-          listeners[host] = {};
+        // get pipeline and connect endpoint from broadcast host
+        let hostSessionId = sessionInfo[host];
+        pipeline = broadcasterStream[hostSessionId].pipeline,
+        broadcasterWebRtcEndpoint = broadcasterStream[hostSessionId].webRtcEndpoint;
+
+        // keep track of host listeners (so that we can disconnect them when the host disconnects)
+        if (!listeners[hostSessionId]) {
+          listeners[hostSessionId] = {};
         }
-        listeners[host][sessionId] = {
-          webRtcEndpoint: webRtcEndpoint,
-          ws: ws
-        };
+        listeners[hostSessionId][sessionId] = true;
       }
 
-      if (!listenerStream) {
-        stop(sessionId);
-        return callback(listenerErrorMessage);
-      }
+      // create listener webRtc endpoint
+      let webRtcEndpoint = yield pipeline.create('WebRtcEndpoint');
+      listenerStream[sessionId].webRtcEndpoint = webRtcEndpoint;
 
       if (candidatesQueue[sessionId]) {
         while (candidatesQueue[sessionId].length) {
@@ -285,22 +317,29 @@ const startListener = (sessionId, ws, sdpOffer, callback) => {
 
       if (fileUri) { // pre-recorded broadcast
         // create player endpoint
-        let player = yield listenerStream.pipeline.create('PlayerEndpoint', {
+        let player = yield pipeline.create('PlayerEndpoint', {
           uri: fileUri,
           mediaProfile: 'WEBM_AUDIO_ONLY' // audio only
         });
         listenerStream.playerEndpoint = player;
 
         player.on('EndOfStream', event => {
+          ws.send(JSON.stringify({
+            id: 'stopCommunication'
+          }));
           stop(sessionId);
-          return callback(null, event);
         });
 
         yield player.connect(webRtcEndpoint);
+        sendAudioInfo(sessionId);
+
         yield player.play(onError);
       }
 
-      yield webRtcEndpoint.connect(webRtcEndpoint);
+      if (host) { // live broadcast
+        // connect listener to broadcaster stream endpoint
+        yield broadcasterWebRtcEndpoint.connect(webRtcEndpoint);
+      }
 
     } catch (error) { onError(error); }
   });
@@ -312,54 +351,134 @@ const clearCandidatesQueue = sessionId => {
   }
 };
 
-const stop = sessionId => {
-  let host = broadcasterUser[sessionId]; // get broadcast host
-  let player = playerStream[sessionId]; // get listener player
+const sendAudioInfo = sessionId => {
+  let player = listenerStream[sessionId] ? listenerStream[sessionId].playerEndpoint : null;
+  if (player) {
+    let audioInfo = player.getVideoInfo();
+    ws.send(JSON.stringify({
+      id: 'audioInfo',
+      isSeekable: audioInfo.getIsSeekable(),
+      initSeekable: audioInfo.getSeekableInit(),
+      endSeekable: audioInfo.getSeekableEnd(),
+      audioDuration: audioInfo.getDuration()
+    }));
+  }
+};
 
-  if (host && broadcasters[host] && broadcasters[host].id === sessionId) {
-    // host is stopping, send stop to all listeners
-    for (var i in listeners[host]) {
-      var listener = listeners[host][i];
-      if (listener.ws) {
-        listener.ws.send(JSON.stringify({
+const sendPosition = sessionId => {
+  let player = listenerStream[sessionId] ? listenerStream[sessionId].playerEndpoint : null;
+  if (player) {
+    let ws = listenerStream[sessionId].ws;
+    ws.send(JSON.stringify({
+      id: 'position',
+      position: player.getPosition()
+    }));
+  }
+};
+
+const doSeek = (sessionId, position) => {
+  let player = listenerStream[sessionId] ? listenerStream[sessionId].playerEndpoint : null;
+  if (player) {
+    try {
+      player.setPosition(position);
+    } catch (error) {
+      let ws = listenerStream[sessionId].ws;
+      ws.send(JSON.stringify({
+        id: 'seek',
+        message: 'Seek failed'
+      }));
+    }
+  }
+};
+
+const playerPause = sessionId => {
+  let player = listenerStream[sessionId] ? listenerStream[sessionId].playerEndpoint : null;
+  if (player) {
+    player.pause();
+  }
+};
+
+const playerResume = sessionId => {
+  let player = listenerStream[sessionId] ? listenerStream[sessionId].playerEndpoint : null;
+  if (player) {
+    player.play();
+  }
+};
+
+const stop = sessionId => {
+  info('STOP initiated for session ' + sessionId);
+  let host = broadcasterUser[sessionId]; // get broadcast host (if any)
+
+  let isHost, isPlayer;
+
+  if (host && broadcasterStream[sessionId]) { // broadcast host
+    isHost = true;
+    liveNow[sessionId] = null;
+    delete liveNow[sessionId];
+    liveNowUpdate(); // update everyone on live broadcasters
+
+    // host is stopping, send stop message to all listeners
+    for (let sid in listeners[sessionId]) {
+      let lstream = listenerStream[sid];
+      if (lstream.ws) {
+        info('Sending disconnect to listener on session ' + sid);
+        lstream.ws.send(JSON.stringify({
           id: 'stopCommunication'
         }));
       }
     }
+
     // stop recorder
     log('Stopping recorder for session ' + sessionId);
-    broadcasters[host].recorderEndpoint && broadcasters[host].recorderEndpoint.stop();
+    broadcasterStream[sessionId].recorderEndpoint && broadcasterStream[sessionId].recorderEndpoint.stop();
+    recording[sessionId] = null;
+    delete recording[sessionId];
+
     // release host broadcast media pipeline
     log('Releasing host media pipeline for session ' + sessionId);
-    broadcasters[host].pipeline && broadcasters[host].pipeline.release();
-    broadcasters[host] = null;
-    delete broadcasters[host];
-    listeners[host] = {};
+    broadcasterStream[sessionId].pipeline && broadcasterStream[sessionId].pipeline.release();
+    broadcasterStream[sessionId] = null;
+    delete broadcasterStream[sessionId];
+    listeners[sessionId] = {};
 
-  } else if (host && listeners[host] && listeners[host][sessionId]) {
+  } else if (host && listenerStream[sessionId]) { // live broadcast listener
+
     // release listener endpoint
-    log('Releasing listener endpoint for session' + sessionId);
-    listeners[host][sessionId].webRtcEndpoint.release();
-    delete listeners[host][sessionId];
+    log('Releasing listener endpoint for session ' + sessionId);
+    listenerStream[sessionId].webRtcEndpoint && listenerStream[sessionId].webRtcEndpoint.release();
+    delete listenerStream[sessionId];
 
-  } else if (player) {
+  } else if (!host && listenerStream[sessionId]) { // pre-recorded broadcast
+    isPlayer = true;
+
     // release player pipeline
-    log('Releasing player endpoint for session ' + sessionId);
-    player.pipeline && player.pipeline.release();
+    log('Releasing player pipeline for session ' + sessionId);
+    listenerStream[sessionId].pipeline && listenerStream[sessionId].pipeline.release();
+    listenerStream[sessionId] = null;
+    delete listenerStream[sessionId];
+
   }
 
   clearCandidatesQueue(sessionId);
 
-  // no host because listening to pre-recorded broadcast
-  // OR no more broadcater nor listeners, we can close the media pipeline
-  if (!host || (Object.keys(listeners[host]).length < 1 && !broadcasters[host])) {
+  // player or host, we can close the media pipeline
+  if (isPlayer || isHost) {
     log('Closing kurento client for session ' + sessionId);
     ktClient[sessionId] && ktClient[sessionId].close();
     ktClient[sessionId] = null;
+    delete ktClient[sessionId];
   }
 
-  // FIXME? we could delete broadcasterUser[sessionId] here or set it to null
-  // sessionIds should not get re-used, so it should not matter
+  if (!isPlayer) {
+    broadcasterUser[sessionId] = null;
+    delete broadcasterUser[sessionId];
+  }
+  if (!isHost) {
+    listenerUser[sessionId] = null;
+    delete listenerUser[sessionId];
+    listening[sessionId] = null;
+    delete listening[sessionId];
+  }
 };
 
 const onIceCandidate = (sessionId, _candidate) => {
@@ -368,13 +487,13 @@ const onIceCandidate = (sessionId, _candidate) => {
 
   let candidate = kurentoClient.getComplexType('IceCandidate')(_candidate);
 
-  if (host && broadcasters[host] && broadcasters[host].id === sessionId && broadcasters[host].webRtcEndpoint) {
+  if (host && broadcasterStream[sessionId] && broadcasterStream[sessionId].webRtcEndpoint) {
     info('Sending broadcaster ICE candidate for session ' + sessionId);
-    broadcasters[host].webRtcEndpoint.addIceCandidate(candidate);
+    broadcasterStream[sessionId].webRtcEndpoint.addIceCandidate(candidate);
 
-  } else if (host && listeners[host] && listeners[host][sessionId] && listeners[host][sessionId].webRtcEndpoint) {
+  } else if (host && listenerStream[sessionId] && listenerStream[sessionId].webRtcEndpoint) {
     info('Sending listener ICE candidate for session ' + sessionId);
-    listeners[host][sessionId].webRtcEndpoint.addIceCandidate(candidate);
+    listenerStream[sessionId].webRtcEndpoint.addIceCandidate(candidate);
 
   } else {
     info('Queueing ICE candidate for session ' + sessionId);
