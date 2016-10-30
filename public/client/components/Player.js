@@ -88,7 +88,6 @@ class Player extends React.Component {
               <span>{this.state.currentTrack.description}</span>
             </p>
           </div>
-          <div className="status">{this.state.status}</div>
         </div>
         <audio controls autoPlay className="audioOutput"></audio>
 
@@ -107,7 +106,9 @@ class Player extends React.Component {
               </table>
             </div>
           </div>
-          <div className="opacityBG">
+          <div className="opacityBG2">
+          </div>
+          <div className="opacityBG1">
           </div>
         </div>
       </div>

@@ -111,7 +111,12 @@ class Recorder extends React.Component {
         <input type="text" id="tags"></input>
         <label htmlFor="desc">Description</label>
         <input type="text" id="desc"></input>
+        <div className="opacityBG2">
+        </div>
+        <div className="opacityBG1">
+        </div>
       </div>
+
     </div>
 
     );

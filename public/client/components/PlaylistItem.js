@@ -13,7 +13,8 @@ class PlaylistItem extends React.Component {
   render() {
 
     var style = {
-      textDecoration: this.state.done ? 'underline' : 'none',
+      cursor: 'pointer',
+      color: this.state.done ? '#b3e7ff' : '#e7ddc9',
     }
 
     return(
