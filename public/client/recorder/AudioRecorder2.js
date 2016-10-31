@@ -49,7 +49,9 @@ let audioRecorder = {
       } else if (parsedMessage.id === 'broadcasterResponse') {
         audioRecorder.broadcasterResponse(parsedMessage);
       //} else if (parsedMessage.id === 'listenerResponse') {
-        //listenerResponse(parsedMessage);
+        //audioRecorder.listenerResponse(parsedMessage);
+      } else if (parsedMessage.id === 'livenow') {
+        // FIXME: do something with this
       } else {
         error('Unrecognized message', parsedMessage);
       }
@@ -141,14 +143,13 @@ let audioRecorder = {
     } else {
       log('Received broadcaster response');
       audioRecorder.webRtcPeer.processAnswer(message.sdpAnswer);
-      audioRecorder.audioNode.muted = false; // unmute player on start
       audioRecorder.setStatus(audioRecorder.RECORDING); // we are recording!
     }
   },
 
-  onError: error => {
-    if (error) {
-      error(error);
+  onError: err => {
+    if (err) {
+      error(err);
       audioRecorder.stop();
     }
   },

@@ -48,7 +48,19 @@ let audioPlayer = {
       //} else if (parsedMessage.id === 'broadcasterResponse') {
       //  audioPlayer.broadcasterResponse(parsedMessage);
       } else if (parsedMessage.id === 'listenerResponse') {
-        listenerResponse(parsedMessage);
+        audioPlayer.listenerResponse(parsedMessage);
+      } else if (parsedMessage.id === 'livenow') {
+        // FIXME: do something with this
+        // send list of live broadcasters
+      } else if (parsedMessage.id === 'audioInfo') {
+        // FIXME: do something with this
+        // send audio info (isSeekable, initSeekable, endSeekable, audioDuration)
+      } else if (parsedMessage.id === 'position') {
+        // FIXME: do something with this
+        // response to a get position
+      } else if (parsedMessage.id === 'seek') {
+        // FIXME: do something with this
+        // This happens on a seek failure.
       } else {
         error('Unrecognized message', parsedMessage);
       }
@@ -129,21 +141,22 @@ let audioPlayer = {
     audioPlayer.sendMessage(message);
   },
 
-  broadcasterResponse: message => {
+  listenerResponse: message => {
     if (message.response !== 'accepted') {
       var errorMsg = message.message ? message.message : 'Unknown error';
       warn(`Broadcast not accepted for the following reason: ${errorMsg}`);
       audioPlayer.stop(true);
     } else {
+      info('SDP ANSWER', message.sdpAnswer);
       audioPlayer.webRtcPeer.processAnswer(message.sdpAnswer);
       audioPlayer.audioNode.muted = false; // unmute player on start
       audioPlayer.setStatus(audioPlayer.PLAYING); // we are recording!
     }
   },
 
-  onError: error => {
-    if (error) {
-      error(error);
+  onError: err => {
+    if (err) {
+      error(err);
       audioPlayer.stop();
     }
   },

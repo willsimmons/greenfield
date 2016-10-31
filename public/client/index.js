@@ -12,7 +12,7 @@ import Recorder from 'Recorder';
 import Player from 'Player';
 
 // open websocket
-let wsUri = 'wss://radradio.stream:8443/audio'; // secure websocket URI with server
+let wsUri = `wss://${location.hostname}:8443/audio`; // secure websocket URI with server
 let ws = new WebSocket(wsUri);
 
 render(

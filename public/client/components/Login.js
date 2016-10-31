@@ -11,7 +11,7 @@ class Login extends React.Component {
       password: null
     };
   }
-  
+
   checkUser(e) {
     e.preventDefault();
     var url = '/api/login';

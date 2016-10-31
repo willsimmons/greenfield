@@ -10,7 +10,7 @@ const logout = function(e) {
     .success(function(data) {
       window.location = data;
     });
-}; 
+};
 
 class NavBar extends React.Component {
 
