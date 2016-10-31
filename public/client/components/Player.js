@@ -5,7 +5,7 @@ import PlaylistItem from 'PlaylistItem';
 import audioPlayer from '../player/AudioPlayer2';
 
 let myDebug = require('debug');
-//myDebug.enable('Player:*');
+myDebug.enable('Player:*');
 const log = myDebug('Player:log');
 const info = myDebug('Player:info');
 const error = myDebug('Player:error');
@@ -52,18 +52,18 @@ class Player extends React.Component {
     audioPlayer.init(this.statusUpdate.bind(this), this.state.ws, this.processMessage.bind(this));
 
     let context = this;
-    let query = { 'username': '.*' };
+    let query = { 'user': '.*', 'username': '.*' };
     getAllRecordingsRequest = $.post('/api/recordings', query, data => {
       log('playlist received');
       let index = 0;
       // get live broadcast IDs
       let live = {};
-      this.state.broadcasts.map(item => { live[item.id] = true; });
+      this.state.broadcasts.map(item => { live[item.id] = true; log('live', item.id); });
       // remove live items from the list
       let newData = [];
-      data.map(item => { if (!live[item.id]) { newData.push(item); } });
+      data.map(id => { log('Looking', id); if (!live[id]) { newData.push(id); } });
       // get recording info
-      data.map((datum, index) => {
+      newData.map((datum, index) => {
         if (!stateAccessible) { return; }
         getRecordingRequests[index] = $.get('/api/recording/' + datum, item => {
           if (!stateAccessible) { return; }
