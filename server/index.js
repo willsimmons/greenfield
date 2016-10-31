@@ -161,12 +161,12 @@ app.get('/api/recording/:id', (req, res) =>
 
 // delete recording from id
 app.delete('/api/recording/:id', (req, res) =>
-  mediaRepo.deleteItem(req.params.id).then(data => res.status(200)).catch(err => res.status(500).json(err))
+  mediaRepo.deleteItem(req.params.id).then(() => res.sendStatus(200)).catch(err => res.status(500).json(err))
 );
 
 // update recording metadata from id
 app.put('/api/recording/:id', (req, res) =>
-  mediaRepo.updateItem(req.params.id, req.body).then(data => res.status(200)).catch(err => res.status(500).json(err))
+  mediaRepo.updateItem(req.params.id, req.body).then(() => res.sendStatus(200)).catch(err => res.status(500).json(err))
 );
 
 // get list of recordings (returns list of recording IDs)

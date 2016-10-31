@@ -10,7 +10,7 @@ class App extends React.Component {
   render() {
     return (
       <div>
-        <NavBar />
+        <NavBar activeTab={location.pathname.replace(/^\/([^\/]*)/, '$1')}/>
         { this.props.children }
       </div>
     );
