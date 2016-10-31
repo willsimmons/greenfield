@@ -16,7 +16,7 @@ const expressSession = require('express-session');
 const MongoStore = require('connect-mongo')(expressSession);
 const passport = require('passport');
 const flash = require('flash');
-const bcrypt = require('bcrypt');
+// const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const LocalStrategy = require('passport-local').Strategy;
@@ -51,7 +51,7 @@ app.use(expressSession({
   secret: password.phrase,
   resave: true,
   saveUninitialized: false,
-  cookie: { 
+  cookie: {
     secure: false,
     maxAge: 30 * 24 * 60 * 60
   },
@@ -80,7 +80,7 @@ passport.deserializeUser(function(id, done) {
 // passport login schema
 passport.use(new LocalStrategy({
   passReqToCallback: true
-}, 
+},
 function(req, username, password, done) {
   User.findOne(username, function(err, user) {
     if (err) { return done(err); }
@@ -143,7 +143,7 @@ app.post('/api/register', (req, res) => {
           if (err) { console.error('Error logging in', err); }
           console.log('logged in as', req.body.username);
           return res.end('/recorder');
-        }); 
+        });
       });
     }
   });
@@ -173,6 +173,16 @@ app.put('/api/recording/:id', (req, res) =>
 app.post('/api/recordings', (req, res) =>
   mediaRepo.findItems(req.body).then(data => res.status(200).json(data)).catch(err => res.status(500).json(err))
 );
+
+// get a list of users
+app.get('/api/users', (req, res) => {
+  console.log('get users')
+  User.findAll((err, users) => {
+    if (err) { return done(err); }
+    console.log('users gotten', users)
+    res.send(users);
+  });
+});
 
 app.get('/login', (req, res) =>
   res.sendFile(path.resolve(__dirname, '../public', 'index.html'))

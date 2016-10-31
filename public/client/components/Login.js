@@ -27,23 +27,25 @@ class Login extends React.Component {
       });
   }
 
-
   render() {
     return (
       <div>
-        <h1>Login Page!</h1>
-        <form onSubmit={this.checkUser}>
-          <div>
-            <label for="username">Username</label>
-            <input type="text" name="username" value={this.state.username}/>
+        <h1>Login Page</h1>
+        <form onSubmit={this.checkUser} className="registerForm">
+          <div className="registerBox">
+            <div className="registerInput">
+              <label for="username">Username</label>
+              <input type="text" name="username" value={this.state.username}/>
+            </div>
+            <div className="registerInput">
+              <label for="password">Password</label>
+              <input type="text" name="password" value={this.state.password}/>
+            </div>
+            <div className="registerInput registerButton">
+              <input type="submit" value="Login"/>
+            </div>
           </div>
-          <div>
-            <label for="password">Password</label>
-            <input type="text" name="password" value={this.state.password}/>
-          </div>
-          <div>
-            <input type="submit" value="Login"/>
-          </div>
+          <div className="opacityBG5"></div>
         </form>
       </div>
     );
