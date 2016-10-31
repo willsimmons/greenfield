@@ -35,10 +35,12 @@ const nextUniqueId = () => {
   return idCounter.toString();
 };
 
-const onError = error => {
+const onError = (error, sessionId, callback) => {
   if (error) {
     stop(sessionId);
-    return callback(error);
+    if (callback) {
+      return callback(error);
+    }
   }
 };
 
@@ -85,7 +87,7 @@ const startWss = server => {
 
         startBroadcaster(sessionId, ws, message.sdpOffer, (error, sdpAnswer) => {
           if (error) {
-            error(error);
+            onError(error, sessionId);
             return ws.send(JSON.stringify({
               id: 'broadcasterResponse',
               response: 'rejected',
@@ -207,7 +209,7 @@ const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
       }
 
       let sdpAnswer = yield webRtcEndpoint.processOffer(sdpOffer);
-      webRtcEndpoint.gatherCandidates(onError);
+      webRtcEndpoint.gatherCandidates(error => onError(error, sessionId, callback));
       // send sdpAnswer back to client
       callback(null, sdpAnswer);
 
@@ -225,7 +227,7 @@ const startBroadcaster = (sessionId, ws, sdpOffer, callback) => {
       // start recorder
       yield recorderEndpoint.record();
 
-    } catch (error) { onError(error); }
+    } catch (error) { onError(error, sessionId, callback); }
   });
 };
 
@@ -311,7 +313,7 @@ const startListener = (sessionId, ws, sdpOffer, callback) => {
       });
 
       let sdpAnswer = yield webRtcEndpoint.processOffer(sdpOffer);
-      webRtcEndpoint.gatherCandidates(onError);
+      webRtcEndpoint.gatherCandidates(error => onError(error, sessionId, callback));
       // send sdpAnswer back to client
       callback(null, sdpAnswer);
 
@@ -333,7 +335,7 @@ const startListener = (sessionId, ws, sdpOffer, callback) => {
         yield player.connect(webRtcEndpoint);
         sendAudioInfo(sessionId);
 
-        yield player.play(onError);
+        yield player.play(error => onError(error, sessionId, callback));
       }
 
       if (host) { // live broadcast
@@ -341,7 +343,7 @@ const startListener = (sessionId, ws, sdpOffer, callback) => {
         yield broadcasterWebRtcEndpoint.connect(webRtcEndpoint);
       }
 
-    } catch (error) { onError(error); }
+    } catch (error) { onError(error, sessionId, callback); }
   });
 };
 
@@ -472,6 +474,8 @@ const stop = sessionId => {
   if (!isPlayer) {
     broadcasterUser[sessionId] = null;
     delete broadcasterUser[sessionId];
+    sessionInfo[host] = null;
+    delete sessionInfo[host];
   }
   if (!isHost) {
     listenerUser[sessionId] = null;

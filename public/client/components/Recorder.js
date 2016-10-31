@@ -119,6 +119,7 @@ class Recorder extends React.Component {
         <div>TEST ID: {this.state.recordId}</div>
         <div>STATUS: {this.state.status}</div>
       </div>
+      <audio controls autoPlay className="audioInput"></audio>
 
       <div className="meta">
         <label htmlFor="title">Title</label>
@@ -129,7 +130,12 @@ class Recorder extends React.Component {
         <input type="text" id="tags"></input>
         <label htmlFor="desc">Description</label>
         <input type="text" id="desc"></input>
+        <div className="opacityBG2">
+        </div>
+        <div className="opacityBG1">
+        </div>
       </div>
+
     </div>
 
     );

@@ -103,39 +103,41 @@ class Player extends React.Component {
     return (
       <div className="player">
         <h1>Player</h1>
-        <audio controls autoPlay className="audioOutput"></audio>
         <div className="controls">
           <div className="round-button">
             <div className="round-button-circle">
               <div onClick={ () => this.handleClick(this.state.currentTrack) } className={this.state.className}>{this.state.playBtn}</div>
             </div>
           </div>
-          <br></br>
-          <button name="stop">Stop</button>
-          <br></br>
-          <br></br>
-          <button name="otherAction">Other Action</button>
-          <p>{this.state.status}</p>
-        </div>
-
-        <div className="meta">
-          <h2>Track Information</h2>
           <div className="trackInfo">
+            <h2>Track Information</h2>
             <p>
               <span><strong>{this.state.currentTrack.username}</strong></span>
               <span>{this.state.currentTrack.title}</span>
               <span>{this.state.currentTrack.description}</span>
             </p>
           </div>
-          <h2>Playlist</h2>
-          <div className="playlistContainer">
-            <table className="playlistTable">
-              <tbody>
-                {this.state.playlist.map(item =>
-                  <PlaylistItem handleClick={this.handleClick.bind(this)} key={item.id} item={item} />
-                )}
-              </tbody>
-            </table>
+        </div>
+        <audio controls autoPlay className="audioOutput"></audio>
+
+
+        <div className="meta">
+
+          <div className="playlistOverlay">
+            <h2>Playlist</h2>
+            <div className="playlistContainer">
+              <table className="playlistTable">
+                <tbody>
+                  {this.state.playlist.map(item =>
+                    <PlaylistItem handleClick={this.handleClick.bind(this)} key={item.id} item={item} />
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div className="opacityBG2">
+          </div>
+          <div className="opacityBG1">
           </div>
         </div>
       </div>

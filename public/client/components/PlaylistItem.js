@@ -15,7 +15,10 @@ class PlaylistItem extends React.Component {
   }
 
   render() {
-    var style = { textDecoration: this.state.done ? 'underline' : 'none' };
+    let style = {
+      cursor: 'pointer',
+      color: this.state.done ? '#b3e7ff' : '#e7ddc9',
+    };
 
     return (
       <tr style={style} onMouseEnter={this.toggle.bind(this)} onMouseLeave={this.toggle.bind(this)} onClick={ () => this.props.handleClick(this.props.item) }>
