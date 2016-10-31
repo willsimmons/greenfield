@@ -23,7 +23,8 @@ class Login extends React.Component {
         alert('login error!');
       })
       .success(function(data) {
-        window.location = data;
+        window.localStorage.user = data.user;
+        window.location = data.url;
       });
   }
 
