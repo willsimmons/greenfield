@@ -36,12 +36,6 @@ module.exports = function(app) {
   }
   ));
 
-  // authentication check helper function
-  const ensureAuthenticated = function(req, res, next) {
-    if (req.isAuthenticated()) { return next(); }
-    return res.redirect('/register');
-  };
-
 ///// authentication ==============================================================================
 
   // login existing user
@@ -51,7 +45,6 @@ module.exports = function(app) {
         req.logIn(user, (err) => {
           if (err) { console.error('Login fail despite passing auth', err); }
           // res.redirect not working here, set up success property on login page to redirect
-          console.log(req.user);
           return res.json({user: req.user.username, url: '/recorder'});
         });
       }
@@ -89,13 +82,12 @@ module.exports = function(app) {
 ///// auth helpers ==============================================================================
   app.get('/verify', (req, res) => {
     var status = req.isAuthenticated();
-    console.log(status);
-    res.send(status);
+    return res.send(status);
   });
 
   app.get('/logout', (req, res) => {
     req.logout();
-    return res.redirect('/register');
+    return res.send('/login');
   });
 
 };

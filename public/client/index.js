@@ -11,7 +11,6 @@ import NavBar from 'NavBar';
 import Recorder from 'Recorder';
 import Player from 'Player';
 import $ from 'jquery';
-import auth from './lib/auth';
 
 const requireAuth = function(nextState, replace, cb) {
   $.get('/verify')
@@ -22,7 +21,7 @@ const requireAuth = function(nextState, replace, cb) {
     .success( (loggedIn) => {
       if (!loggedIn) {
         replace({
-          pathname: '/register',
+          pathname: '/login',
           state: { nextPathName: nextState.location.pathname }
         });
       }
