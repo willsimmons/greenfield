@@ -1,7 +1,7 @@
 'use strict';
 
 const debug = require('debug');
-debug.enable('broadcasting:*');
+//debug.enable('broadcasting:*');
 const log = debug('broadcasting:log');
 const info = debug('broadcasting:info');
 const error = debug('broadcasting:error');
@@ -44,9 +44,12 @@ const onError = (error, sessionId, callback) => {
   }
 };
 
-// tell everyone who is live now
-const liveNowUpdate = () => {
+// tell client(s) who is live now
+const liveNowUpdate = ws => {
   wss.clients.forEach(client => {
+    if (ws && client !== ws) {
+      return;
+    }
     client.send(JSON.stringify({
       id: 'livenow',
       broadcasters: Object.keys(liveNow).map(key => liveNow[key]) || []
@@ -128,6 +131,9 @@ const startWss = server => {
             response: 'accepted',
             sdpAnswer: sdpAnswer
           }));
+
+          // tell listener about broadcasters who are live
+          liveNowUpdate(ws);
         });
 
       } else if (message.id === 'stop') {
