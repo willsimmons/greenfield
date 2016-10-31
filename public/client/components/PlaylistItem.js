@@ -4,28 +4,22 @@ import React from 'react';
 class PlaylistItem extends React.Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      done: false
-    };
   }
 
-  toggle() {
-    this.setState({ done: !this.state.done });
+  timerString(timer) {
+    return (timer != null) ? new Date(1000 * timer).toISOString().substr(11, 8).replace(/^00:(.*:.*)/, '$1') : '';
   }
 
   render() {
-    let style = {
-      cursor: 'pointer',
-      color: this.state.done ? '#b3e7ff' : '#e7ddc9',
-    };
 
     return (
-      <tr style={style} onMouseEnter={this.toggle.bind(this)} onMouseLeave={this.toggle.bind(this)} onClick={ () => this.props.handleClick(this.props.item) }>
-				<td> <strong>{this.props.item.username}</strong> </td>
-				<td> {this.props.item.title} </td>
-				<td> {this.props.item.description} </td>
-          <td> {this.props.item.id} </td>
+      <tr className="playlistTableRow">
+        <td className="deleteItem" onClick={ () => this.props.deleteItem(this.props.item, this.props.index)}><i className="fa fa-minus-circle" aria-hidden="true"></i></td>
+        <td onClick={ () => this.props.handleClick(this.props.item)} className="player-item-username"> <strong>{this.props.item.username}</strong> </td>
+				<td onClick={ () => this.props.handleClick(this.props.item)}> {this.props.item.title} </td>
+				<td onClick={ () => this.props.handleClick(this.props.item)}> {this.props.item.description} </td>
+        <td onClick={ () => this.props.handleClick(this.props.item)} className="player-item-id"> {this.props.item.id} </td>
+        <td onClick={ () => this.props.handleClick(this.props.item)}> {this.timerString(this.props.item.duration)} </td>
 			</tr>
     );
   }

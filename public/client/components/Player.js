@@ -5,7 +5,7 @@ import PlaylistItem from 'PlaylistItem';
 import audioPlayer from '../player/AudioPlayer2';
 
 let myDebug = require('debug');
-myDebug.enable('Player:*');
+//myDebug.enable('Player:*');
 const log = myDebug('Player:log');
 const info = myDebug('Player:info');
 const error = myDebug('Player:error');
@@ -69,6 +69,31 @@ class Player extends React.Component {
     }
   }
 
+  deleteItem(item, index) {
+    let context = this;
+    let answer = confirm(`Are you sure you want to delete '${item.title}'?`);
+    if (answer) {
+      if (this.state.status !== 'IDLE') {
+        audioPlayer.stop();
+      }
+      $.ajax({
+        type: 'DELETE',
+        url: `/api/recording/${item.id}`,
+        success: () => {
+          log(`Item ${item.id} deleted from repository`);
+          // remove item from playlist
+          let playlist = context.state.playlist;
+          playlist.splice(index, 1);
+          context.setState({ playlist: playlist });
+          if (index === 0) {
+            context.setState({ currentTrack: playlist[0] });
+          }
+        },
+        error: (req, err) => error(err)
+      });
+    }
+  }
+
   handleClick(item) {
     log('click', item);
 
@@ -109,13 +134,10 @@ class Player extends React.Component {
               <div onClick={ () => this.handleClick(this.state.currentTrack) } className={this.state.className}>{this.state.playBtn}</div>
             </div>
           </div>
-          <div className="trackInfo">
-            <h2>Track Information</h2>
-            <p>
-              <span><strong>{this.state.currentTrack.username}</strong></span>
-              <span>{this.state.currentTrack.title}</span>
-              <span>{this.state.currentTrack.description}</span>
-            </p>
+          <div className="control-text trackInfo">
+            <div><strong>{this.state.currentTrack.username}</strong></div>
+            <div>{this.state.currentTrack.title}</div>
+            <div>{this.state.currentTrack.description}</div>
           </div>
         </div>
         <audio controls autoPlay className="audioOutput"></audio>
@@ -128,8 +150,8 @@ class Player extends React.Component {
             <div className="playlistContainer">
               <table className="playlistTable">
                 <tbody>
-                  {this.state.playlist.map(item =>
-                    <PlaylistItem handleClick={this.handleClick.bind(this)} key={item.id} item={item} />
+                  {this.state.playlist.map((item, index) =>
+                    <PlaylistItem handleClick={this.handleClick.bind(this)} deleteItem={this.deleteItem.bind(this)} index={index} key={item.id} item={item} />
                   )}
                 </tbody>
               </table>

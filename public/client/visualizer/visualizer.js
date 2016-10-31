@@ -35,7 +35,7 @@ const updateAnalysers = time => {
     magnitude = magnitude / multiplier;
     let magnitude2 = freqByteData[i * multiplier];
     analyserContext.fillStyle = `hsl( ${ Math.round((i * 360) / numBars) }, 100%, 50%)`;
-    analyserContext.fillRect(i * SPACING, canvasHeight, BAR_WIDTH, -magnitude);
+    analyserContext.fillRect(i * SPACING, canvasHeight, BAR_WIDTH, -magnitude * 0.35);
   }
 
   let drawVisual = window.requestAnimationFrame( updateAnalysers );
@@ -100,13 +100,15 @@ let visualizer = {
     }
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
-    audioContext = new AudioContext();
+    if (!audioContext) {
+      audioContext = new AudioContext();
+    }
 
     canvas = document.getElementById('analyser');
     canvasWidth = canvas.width;
     canvasHeight = canvas.height;
     analyserContext = canvas.getContext('2d');
-    numBars = Math.round(canvasWidth / SPACING);
+    numBars = Math.round(canvasWidth / SPACING / 2.0);
 
     if (audioElement) {
       gotStream(audioElement);

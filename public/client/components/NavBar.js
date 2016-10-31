@@ -27,12 +27,10 @@ class NavBar extends React.Component {
         <Link to="/" className="logo">RADRADIO</Link>
         <div className="nav">
           <ul className="navList">
-            <li><Link to="/recorder" className="navItem">Recorder</Link></li>
-            <li><Link to="/player" className="navItem">Player</Link></li>
-            <li><a href="#" className="navItem">About</a></li>
-            <li><input placeholder="Search..." className="navItem"></input></li>
-            <li><a href="#" className="navItem">Login</a></li>
-            <li><Link to="/register" className="navItem">Register</Link></li>
+            <li><Link to="/recorder" className={"navItem " + (this.props.activeTab === 'recorder' ? 'active' : '')}>Recorder</Link></li>
+            <li><Link to="/player" className={"navItem " + (this.props.activeTab === 'player' ? 'active' : '')}>Player</Link></li>
+            <li><a href="#" className={"navItem " + (this.props.activeTab === 'login' ? 'active' : '')}>Login</a></li>
+            <li><Link to="/register" className={"navItem " + (this.props.activeTab === 'register' ? 'active' : '')}>Register</Link></li>
             <li onClick={logout}><a href="#" target="_self" className="navItem">Logout</a></li>
           </ul>
         </div>

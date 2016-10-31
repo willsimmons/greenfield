@@ -15,7 +15,7 @@
 'use strict';
 
 var debug = require('debug');
-debug.enable('media-repo:*');
+//debug.enable('media-repo:*');
 var log = debug('media-repo:log');
 var info = debug('media-repo:info');
 var error = debug('media-repo:error');
@@ -24,7 +24,7 @@ const Promise = require('bluebird');
 const request = require('request');
 
 // Kurento repository URI
-const KRP_URI = process.env.KRP_URI || 'http://138.197.196.39:7676';
+const KRP_URI = process.env.KRP_URI || 'http://radradio.stream:7676';
 
 const reqGetOptions = id => {
   return {
@@ -94,7 +94,7 @@ module.exports = {
 
   updateItem: (id, metadata) => {
     let options = reqPutOptions(id, metadata);
-    return checkMetadata(metadata).then(() => mediaRepoRequest(options)).then().catch(error); // no response
+    return checkMetadata(metadata).then(() => mediaRepoRequest(options)).then(data => data).catch(error); // no response
   },
 
   deleteItem: id => {

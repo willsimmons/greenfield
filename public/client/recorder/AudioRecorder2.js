@@ -1,5 +1,5 @@
 let myDebug = require('debug');
-myDebug.enable('AudioRecorder:*');
+//myDebug.enable('AudioRecorder:*');
 const log = myDebug('AudioRecorder:log');
 const info = myDebug('AudioRecorder:info');
 const error = myDebug('AudioRecorder:error');
