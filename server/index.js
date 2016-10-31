@@ -24,11 +24,11 @@ const mongoose = require('mongoose');
 const db = require('./config/db.js');
 const password = require('./config/secret.js');
 
-const port = process.env.PORT || 8443;
-
 const https = require('https');
 const mediaRepo = require('./media-repo/media-repo');
 const broadcasting = require('./broadcasting/broadcasting');
+
+const port = process.env.PORT || 8443;
 
 const app = express();
 
@@ -193,13 +193,12 @@ app.get('*', (req, res, next) =>
 );
 
 // key/certificate for https server
-const sslPath = process.env.SSL_PATH || '/etc/letsencrypt/live/radradio.stream/';
+const sslPath = process.env.SSL_PATH || '/etc/letsencrypt/live/radradio.stream';
 const options = {
-  key: fs.readFileSync(sslPath + 'privkey.pem'),
-  cert: fs.readFileSync(sslPath + 'fullchain.pem')
+  key: fs.readFileSync(sslPath + '/privkey.pem'),
+  cert: fs.readFileSync(sslPath + '/fullchain.pem')
 };
 
-// listen (start app with node / nodemon index.js) ==========================
 // secure server setup
 const server = https.createServer(options, app);
 broadcasting.startWss(server);

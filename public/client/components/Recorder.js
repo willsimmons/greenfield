@@ -2,6 +2,7 @@ import styles from 'style';
 import React from 'react';
 import $ from 'jquery';
 import audioRecorder from '../recorder/AudioRecorder2';
+import visualizer from '../visualizer/visualizer';
 
 let myDebug = require('debug');
 myDebug.enable('Recorder:*');
@@ -19,35 +20,40 @@ class Recorder extends React.Component {
       recordBtn: '●',
       className: 'round-button-record',
       status: null,
+      node: null,
       ws: props.route.ws
     };
   }
 
   componentDidMount() {
+    let node = document.getElementsByClassName('audioInput')[0];
+    this.setState({ node: node });
     this.init();
+    visualizer.initAudio();
   }
 
   init() {
+    // FIXME? do we need to add processMessage?
     audioRecorder.init(this.statusUpdate.bind(this), this.state.ws);
     log('init');
   }
 
   handleClick(event) {
-    var url = '/api/recording';
-    var context = this;
+    let url = '/api/recording';
+    let context = this;
 
     if (!this.state.recordingState) {
       // FIXME
-      var metadata = { username: 'ERIC', title: 'first record', description: 'party time' };
-      var node = document.getElementsByClassName('audioInput')[0];
+      let metadata = { username: 'gilles', title: 'recording test', description: 'party time' };
+      let node = this.state.node;
 
       // ask for a new item url for recording
       $.post(url, metadata, data => {
         log('success', data);
-        audioRecorder.start(data.url, node, 'gilles');
+        audioRecorder.start(data.url, node, 'recorder_user');
         context.setState({ recordId: data.id });
         log('setting recordingState true');
-        this.setState({
+        context.setState({
           recordingState: true,
           recordBtn: '■',
           className: 'round-button-stop',
@@ -87,7 +93,7 @@ class Recorder extends React.Component {
   }
 
   statusUpdate(status) {
-    this.setState({status: status});
+    this.setState({ status: status });
   }
 
   render() {
@@ -95,6 +101,10 @@ class Recorder extends React.Component {
 
     <div className="recorder">
       <h1>Recorder</h1>
+      <div id="viz">
+        <canvas id="analyser" width="1024" height="200"></canvas>
+      </div>
+      <audio controls autoPlay className="audioInput"></audio>
       <div className="controls">
         <div className="round-button">
           <div className="round-button-circle">

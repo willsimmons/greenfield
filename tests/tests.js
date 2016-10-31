@@ -13,7 +13,7 @@ describe('Server', function() {
         })
         .expect(200, done);
     });
-    it('Should retreive recordings', function(done) {
+    it('Should retrieve recordings', function(done) {
       request(app)
         .get('/api/recording/test')
         .expect(function(res) {
@@ -28,7 +28,7 @@ describe('Server', function() {
         .expect(function(res) {
           Array.isArray(res.body);
         })
-        .expect(200, done); 
+        .expect(200, done);
     });
     it('Should handle bad requests', function(done) {
       request(app)

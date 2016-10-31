@@ -287,6 +287,10 @@ h1 {
 	height: 245px;
 }
 
+.trackInfo span{
+	padding: 0 10px 30px 10px;
+}
+
 .playlistContainer {
 	height:330px;
 	overflow-y: scroll;
@@ -302,4 +306,12 @@ h1 {
 /* hide audio player (during recording) */
 .audioInput {
   display: none;
+}
+
+canvas {
+  display: inline-block;
+  background: #202020;
+  width: 95%;
+  height: 45%;
+  box-shadow: 0 0 10px blue;
 }

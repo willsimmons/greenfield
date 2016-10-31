@@ -18,38 +18,41 @@ class Player extends React.Component {
       playId: null,
       playBtn: '▶',
       className: 'round-button-play',
-      status: null,
+      status: 'IDLE',
       playlist: [],
-      currentTrack: {username: '', title: '', description: ''},
+      currentTrack: { username: '', title: '', description: '' },
+      node: null,
       ws: props.route.ws
     };
   }
 
   componentDidMount() {
+    let node = document.getElementsByClassName('audioOutput')[0];
+    this.setState({ node: node });
     this.init();
   }
 
   init() {
-    var query = {"username": ".*"};
-    var context = this;
+    log('init');
 
-    console.log('init');
+    audioPlayer.init(this.statusUpdate.bind(this), this.state.ws);
 
-    audioPlayer.init(this.statusUpdate.bind(this));
-
-    $.post('http://localhost:8000/api/recordings', query, data => {
-      console.log('playlist received');
-
-      var results = [];
-
-      for (var i = 0; i < data.length; i++) {
-        $.get('http://localhost:8000/api/recording/' + data[i], item => {
-          results.push(item);
-          context.setState({playlist: results, currentTrack: results[0]});
-        });
-      }
-
-      context.setState({ playlist: results });
+    let context = this;
+    let query = { 'username': '.*' };
+    $.post('/api/recordings', query, data => {
+      log('playlist received');
+      let index = 0;
+      data.map(datum => $.get('/api/recording/' + datum, item => {
+        if (!item.status) { // make sure item exists
+          let playlist = this.state.playlist;
+          playlist[index] = item;
+          context.setState({ playlist: playlist });
+          if (index === 0) {
+            context.setState({ currentTrack: playlist[0] });
+          }
+          index++;
+        }
+      }));
     });
   }
 
@@ -67,10 +70,9 @@ class Player extends React.Component {
   }
 
   handleClick(item) {
-    console.log('click', item)
-    var node = document.getElementsByClassName('audioOutput')[0];
-    var context = this;
+    log('click', item);
 
+    let start = false;
     if (this.state.status === 'IDLE') {
       start = true;
     } else {
@@ -104,7 +106,7 @@ class Player extends React.Component {
         <div className="controls">
           <div className="round-button">
             <div className="round-button-circle">
-              <div onClick={() => {this.handleClick(this.state.currentTrack)}} className={this.state.className}>{this.state.playBtn}</div>
+              <div onClick={ () => this.handleClick(this.state.currentTrack) } className={this.state.className}>{this.state.playBtn}</div>
             </div>
           </div>
           <div className="trackInfo">

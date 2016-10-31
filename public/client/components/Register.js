@@ -11,7 +11,7 @@ class Register extends React.Component {
       password: null
     };
   }
-  
+
   addUser(e) {
     e.preventDefault();
     var url = '/api/register';
