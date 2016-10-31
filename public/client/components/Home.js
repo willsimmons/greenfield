@@ -1,5 +1,7 @@
 import styles from 'style';
 import React from 'react';
+import $ from 'jquery';
+import HomeListItem from 'HomeListItem';
 
 class Home extends React.Component {
 
@@ -10,7 +12,8 @@ class Home extends React.Component {
 	    recordId: null,
 	    recordBtn: '●',
 	    className: 'round-button-record',
-	    status: null
+	    status: null,
+	    users: []
 	  };
 	}
 
@@ -19,27 +22,29 @@ class Home extends React.Component {
 	}
 
 	init() {
-	  var query = {"username": ".*"};
 	  var context = this;
+	  var fakeData = [
+	  {username: 'AllTheSingleLadies', pic: 'client/img/user1.jpg', description: 'Real Relationship Talk', id: 1},
+	  {username: 'JumpinJoe', pic: 'client/img/user2.jpg', description: 'Hollywoods portrayal of the African American', id: 2},
+	  {username: 'First2Break', pic: 'client/img/user3.jpg', description: 'Basketball Highlights', id: 3},
+	  {username: 'BooksForKids', pic: 'client/img/user4.jpg', description: 'Reading books to kids made fun!', id: 4},
+	  {username: 'TheHeatbeatPodcast', pic: 'client/img/user5.jpg', description: 'Fans get hot talking about Miami Heat', id: 5},
+	  {username: 'StocktonHeat92', pic: 'client/img/user6.jpg', description: 'Not quite as hot as Miami, but still pretty warm', id: 6},
+	  {username: 'BlueFishRadio', pic: 'client/img/user7.jpg', description: 'For all your fishing needs', id: 7},
+	  {username: 'LeoLaporte', pic: 'client/img/user8.jpg', description: 'Lets fix your computer!', id: 8}]
 
-	  console.log('init');
+	  console.log('home init');
+	  //remove once data works
+    context.setState({ users: fakeData });
 
-	  audioPlayer.init(this.statusUpdate.bind(this));
-
-	  $.post('http://localhost:8000/api/recordings', query, data => {
-	    console.log('playlist received');
-
-	    var results = [];
-
-	    for (var i = 0; i < data.length; i++) {
-	      $.get('http://localhost:8000/api/recording/' + data[i], item => {
-	        results.push(item);
-	        context.setState({playlist: results, currentTrack: results[0]});
-	      });
-	    }
-
-	    context.setState({ playlist: results });
+	  $.get('/api/users', data => {
+	    // console.log('homeList received', data);
+	    // context.setState({ users: data });
 	  });
+	}
+
+	handleClick() {
+		console.log('click')
 	}
 
 	render() {
@@ -47,49 +52,21 @@ class Home extends React.Component {
 			<div className="player">
 			  <h1>Welcome</h1>
 
-			  <div className="stationList">
-
-			    <div className="playlistOverlay">
-			      <h2>Playlist</h2>
-			      <div className="playlistContainer">
-			        <table className="playlistTable">
-			          <tbody>
-			            {this.state.playlist.map(item =>
-			              <PlaylistItem handleClick={this.handleClick.bind(this)} key={item.id} item={item} />
-			            )}
-			          </tbody>
-			        </table>
+			  <div className="homeList">
+			    <div className="homeListOverlay">
+			      <h2>Available Stations:</h2>
+			      <div className="homeListContainer">
+		          {this.state.users.map(user =>
+		            <HomeListItem handleClick={this.handleClick.bind(this)} key={user.id} user={user} />
+		          )}
 			      </div>
 			    </div>
-			    <div className="opacityBG2">
+			    <div className="opacityBG4">
 			    </div>
-			    <div className="opacityBG1">
+			    <div className="opacityBG3">
 			    </div>
 			  </div>
 			</div>
-
-
-
-
-
-			  <div className="controls">
-			    <div className="round-button">
-			      <div className="round-button-circle">
-			        <div onClick={() => {this.handleClick(this.state.currentTrack)}} className={this.state.className}>{this.state.playBtn}</div>
-				      </div>
-			    </div>
-			    <div className="trackInfo">
-			      <h2>Track Information</h2>
-			      <p>
-			        <span><strong>{this.state.currentTrack.username}</strong></span>
-			        <span>{this.state.currentTrack.title}</span>
-			        <span>{this.state.currentTrack.description}</span>
-			      </p>
-			    </div>
-			  </div>
-			  <audio controls autoPlay className="audioOutput"></audio>
-
-
 		)
 	}
 }

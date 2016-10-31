@@ -14,7 +14,7 @@ audio {
 	margin: 0px auto 10px;
 	width: 400px;
 }
-/*div{
+/*div {
 	border: 1px solid red;
 }*/
 
@@ -229,6 +229,31 @@ h1 {
 	text-align: center;
 	z-index: 5;
 }
+.homeList {
+	position: relative;
+	margin: 0 auto;
+	width: 90%;
+	height: 550px;
+	border-radius: 5px;
+	text-align: center;
+	color: white;
+}
+.homeListOverlay {
+	position: absolute;
+	top:5%;
+	left: 5%;
+	margin: 0 auto;
+	width: 90%;
+	height: 510px;
+	border-radius: 2px;
+	text-align: center;
+	z-index: 5;
+}
+.homeListContainer {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	height: 435px;
+}
 .opacityBG1 {
 	z-index: 1;
 	margin: 0 auto;
@@ -250,6 +275,47 @@ h1 {
 	left: 5%;
 	width: 90%;
 	height: 410px;
+	background: #0d112c;
+	border-radius: 2px;
+	text-align: center;
+	opacity: .9;
+}
+
+.opacityBG3 {
+	z-index: 1;
+	margin: 0 auto;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 550px;
+	background: #222745;
+	border-radius: 5px;
+	text-align: center;
+	opacity: .5;
+}
+.opacityBG4 {
+	z-index: 2;
+	margin: 0 auto;
+	position: absolute;
+	top: 5%;
+	left: 5%;
+	width: 90%;
+	height: 510px;
+	background: #0d112c;
+	border-radius: 2px;
+	text-align: center;
+	opacity: .9;
+}
+
+.opacityBG5 {
+	z-index: 2;
+	margin: 0 auto;
+	position: absolute;
+	top: -50px;
+	left: 0%;
+	width: 100%;
+	height: 100%;
 	background: #0d112c;
 	border-radius: 2px;
 	text-align: center;
@@ -306,7 +372,6 @@ h1 {
 .playlistTable td {
 	padding: 2px 10px;
 }
-
 /* hide audio player (during recording) */
 .audioInput {
   display: none;
@@ -318,4 +383,43 @@ canvas {
   width: 95%;
   height: 45%;
   box-shadow: 0 0 10px blue;
+}
+
+.userBox {
+	width: 200px;
+	display: inline-block;
+	height: 280px;
+	background-color: #3f3f3f;
+	margin: 5px 5px 10px;
+	overflow: hidden;
+	cursor: pointer;
+	transition: all .5s;
+}
+.userBox div {
+	padding: 5px;
+}
+
+.userBox:hover {
+	background-color: #bababa;
+}
+.registerForm {
+	margin: 100px auto;
+	width: 400px;
+	height:200px;
+	position: relative;
+}
+.registerInput {
+	z-index: 5;
+	margin: 10px auto;
+	width: 300px;
+	text-align: right;
+}
+.registerInput label {
+	margin-right: 10px;
+	color: white;
+}
+.registerBox {
+	z-index: 5;
+	margin: 50px 10% 0 0;
+	position: relative;
 }

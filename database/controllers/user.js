@@ -12,6 +12,10 @@ const findOne = function(username, cb) {
   UserModel.find({username: username}, cb);
 };
 
+const findAll = function(cb) {
+  UserModel.find({}, cb);
+};
+
 const findId = function(id, cb) {
   UserModel.find({_id: id}, cb);
 };
@@ -19,3 +23,4 @@ const findId = function(id, cb) {
 exports.addUser = addUser;
 exports.findOne = findOne;
 exports.findId = findId;
+exports.findAll = findAll;
