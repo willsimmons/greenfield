@@ -94,6 +94,10 @@ module.exports = function(app) {
     res.sendFile(path.resolve(__dirname, '../public', 'index.html'))
   );
 
+  // app.get('/verify', (req, res) =>
+    
+  // );
+
   app.get('/logout', (req, res) => {
     req.logout();
     return res.end('/login');

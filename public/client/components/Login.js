@@ -1,6 +1,7 @@
 import styles from 'style';
 import React from 'react';
 import $ from 'jquery';
+import auth from '../lib/auth';
 
 class Login extends React.Component {
 
@@ -14,18 +15,7 @@ class Login extends React.Component {
 
   checkUser(e) {
     e.preventDefault();
-    var url = '/api/login';
-    var username = e.target.username.value;
-    var password = e.target.password.value;
-    var creds = { username: username, password: password };
-    $.post(url, creds)
-      .error(function() {
-        alert('login error!');
-      })
-      .success(function(data) {
-        window.localStorage.user = data.user;
-        window.location = data.url;
-      });
+    auth.login(e.target.username.value, e.target.password.value);
   }
 
   render() {
