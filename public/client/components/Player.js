@@ -1,8 +1,14 @@
 import styles from 'style';
 import React from 'react';
 import $ from 'jquery';
-import audioPlayer from '../player/audioPlayer';
 import PlaylistItem from 'PlaylistItem';
+import audioPlayer from '../player/AudioPlayer2';
+
+let myDebug = require('debug');
+myDebug.enable('Player:*');
+const log = myDebug('Player:log');
+const info = myDebug('Player:info');
+const error = myDebug('Player:error');
 
 class Player extends React.Component {
 
@@ -14,7 +20,8 @@ class Player extends React.Component {
       className: 'round-button-play',
       status: null,
       playlist: [],
-      currentTrack: {username: '', title: '', description: ''}
+      currentTrack: {username: '', title: '', description: ''},
+      ws: props.route.ws
     };
   }
 
@@ -47,7 +54,16 @@ class Player extends React.Component {
   }
 
   statusUpdate(status) {
-    this.setState({status: status});
+    this.setState({ status: status });
+    this.updatePlayer(status);
+  }
+
+  updatePlayer(status) {
+    if (status === 'IDLE') {
+      this.setState({ playBtn: '▶', className: 'round-button-play' });
+    } else {
+      this.setState({ playBtn: '■', className: 'round-button-stop' });
+    }
   }
 
   handleClick(item) {
@@ -56,17 +72,28 @@ class Player extends React.Component {
     var context = this;
 
     if (this.state.status === 'IDLE') {
-        audioPlayer.start(item.id, node);
-        context.setState({playBtn: '■', className: 'round-button-stop', currentTrack: item });
-
+      start = true;
     } else {
-      if (item === this.state.currentTrack) {
-        audioPlayer.stop();
-      } else {
-        audioPlayer.stop();
-        audioPlayer.start(item.id, node);
+      audioPlayer.stop();
+      if (item !== this.state.currentTrack) {
+        start = true;
       }
-      context.setState({playBtn: '▶', className: 'round-button-play' });
+    }
+
+    if (start) {
+      this.setState({ currentTrack: item });
+
+      let testingLive = false;
+      if (testingLive) {
+        // to test live streaming
+        audioPlayer.start('recorder_user', this.state.node, 'gilles');
+      } else {
+        $.get('/api/recording/' + item.id, data => {
+          if (!data.status) {
+            audioPlayer.start(data.url, this.state.node, 'gilles');
+          }
+        });
+      }
     }
   }
 

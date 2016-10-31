@@ -10,7 +10,7 @@
     "webpack": "webpack --progress --colors",
     "webpack-watch": "webpack --progress --colors --watch",
     "test": "live-server --open=./SpecRunner.html --port=8081",
-    "postinstall": "curl -s https://raw.githubusercontent.com/reactorcore/pomander/master/bin/install | bash"
+    "postinstall": "curl -s https://raw.githubusercontent.com/reactorcore/pomander/master/bin/install | bash; cd public && bower install"
   },
   "dependencies": {
     "adapter": "0.0.1",
@@ -18,6 +18,7 @@
     "bluebird": "^3.4.6",
     "body-parser": "^1.15.2",
     "bootstrap": "^4.0.0-alpha.2",
+    "bufferutil": "^1.2.1",
     "co": "^4.6.0",
     "connect-mongo": "^1.3.2",
     "cookie-parser": "^1.4.3",
@@ -27,7 +28,6 @@
     "flash": "^1.1.0",
     "jquery": "^2.2.1",
     "kurento-client": "^6.6.0",
-    "kurento-utils": "^6.6.0",
     "mongoose": "^4.6.5",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
@@ -35,7 +35,9 @@
     "react-dom": "^0.14.7",
     "react-router": "^2.0.0",
     "request": "^2.76.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "utf-8-validate": "^1.2.1",
+    "ws": "^1.1.1"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
