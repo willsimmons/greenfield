@@ -20,7 +20,6 @@ module.exports = {
       .success( (data) => {
         window.location = data;
       });
-    
   }
   
 };
