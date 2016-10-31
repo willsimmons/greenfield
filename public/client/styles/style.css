@@ -261,6 +261,7 @@ h1 {
 	color:white;
 	display:block;
 	margin:5px 0 0 0;
+	z-index: 5;
 }
 
 .meta input[type=text] {
@@ -273,10 +274,12 @@ h1 {
 	border: none;
   border-bottom: 2px solid black;
   display:block;
+  z-index: 5;
 }
 
 .meta input[type=text]:focus {
   background-color: #e2ffcc;
+  z-index: 5;
 }
 
 #desc {
