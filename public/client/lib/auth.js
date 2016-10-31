@@ -7,13 +7,20 @@ module.exports = {
     var creds = { username: username, password: password };
 
     $.post(url, creds)
-    .error(function() {
-      alert('login error!');
-    })
-    .success(function(data) {
-      window.localStorage.user = data.user;
-      window.location = data.url;
-    });
+      .error( () => 
+        alert('login error!'))
+      .success( (data) => {
+        window.localStorage.user = data.user;
+        window.location = data.url;
+      });
+  },
+
+  logout() {
+    $.get('/logout')
+      .success( (data) => {
+        window.location = data;
+      });
+    
   }
   
 };

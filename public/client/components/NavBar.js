@@ -2,23 +2,21 @@ import styles from 'style';
 import React from 'react';
 import { Link } from 'react-router';
 import $ from 'jquery';
+import auth from '../lib/auth';
+
 
 const logout = function(e) {
   delete window.localStorage.user;
   e.preventDefault();
-  var url = '/logout';
-  $.get(url)
-    .success(function(data) {
-      window.location = data;
-    });
-};
+  auth.logout();
+}; 
 
 class NavBar extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
-
+      authenticated: false
     };
   }
 

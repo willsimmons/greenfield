@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -86,21 +87,15 @@ module.exports = function(app) {
   });
 
 ///// auth helpers ==============================================================================
-  app.get('/login', (req, res) =>
-    res.sendFile(path.resolve(__dirname, '../public', 'index.html'))
-  );
-
-  app.get('/register', (req, res) =>
-    res.sendFile(path.resolve(__dirname, '../public', 'index.html'))
-  );
-
-  // app.get('/verify', (req, res) =>
-    
-  // );
+  app.get('/verify', (req, res) => {
+    var status = req.isAuthenticated();
+    console.log(status);
+    res.send(status);
+  });
 
   app.get('/logout', (req, res) => {
     req.logout();
-    return res.end('/login');
+    return res.redirect('/register');
   });
 
 };
