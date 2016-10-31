@@ -1,8 +1,14 @@
+let myDebug = require('debug');
+myDebug.enable('AudioPlayer:*');
+const log = myDebug('AudioPlayer:log');
+const info = myDebug('AudioPlayer:info');
+const error = myDebug('AudioPlayer:error');
+
 let audioPlayer = {
   set: (v, val) => { audioPlayer[v] = val; },
   get: v => audioPlayer[v],
 
-  wsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket
+  kmsWsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket
 
   IDLE: 0,
   DISABLED: 1,
@@ -76,14 +82,14 @@ let audioPlayer = {
 
   setIceCandidateCallbacks: (webRtcPeer, webRtcEp, onerror) => {
     webRtcPeer.on('icecandidate', candidate => {
-      console.log('Local candidate:', candidate);
+      log('Local candidate:', candidate);
       candidate = kurentoClient.getComplexType('IceCandidate')(candidate);
       webRtcEp.addIceCandidate(candidate, onerror);
     });
 
     webRtcEp.on('OnIceCandidate', event => {
       var candidate = event.candidate;
-      console.log('Remote candidate:', candidate);
+      log('Remote candidate:', candidate);
       webRtcPeer.addIceCandidate(candidate, onerror);
     });
   },
@@ -93,7 +99,7 @@ let audioPlayer = {
 
     co(function *() {
       try {
-        if (!audioPlayer.client) { audioPlayer.client = yield kurentoClient(audioPlayer.wsUri); }
+        if (!audioPlayer.client) { audioPlayer.client = yield kurentoClient(audioPlayer.kmsWsUri); }
 
         // create media pipeline
         audioPlayer.pipeline = yield audioPlayer.client.create('MediaPipeline');
@@ -131,7 +137,7 @@ let audioPlayer = {
 
   onError: error => {
     if (error) {
-      console.error(error);
+      error(error);
       audioPlayer.stop();
     }
   }

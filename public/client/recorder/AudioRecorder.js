@@ -1,8 +1,14 @@
+let myDebug = require('debug');
+myDebug.enable('AudioRecorder:*');
+const log = myDebug('AudioRecorder:log');
+const info = myDebug('AudioRecorder:info');
+const error = myDebug('AudioRecorder:error');
+
 let audioRecorder = {
   set: (v, val) => { audioRecorder[v] = val; },
   get: v => audioRecorder[v],
 
-  wsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket
+  kmsWsUri: 'wss://138.197.196.39:8433/kurento', // Kurento secure websocket URI
 
   IDLE: 0,
   DISABLED: 1,
@@ -33,6 +39,7 @@ let audioRecorder = {
     let options = {
       localVideo: audioInput,
       mediaConstraints: { audio: true, video: false } // audio only
+      //onicecandidate: onIceCandidate
     };
 
     // FIXME? could use WebRtcPeerSendonly instead but we may want to receive to do a visualizer
@@ -73,14 +80,14 @@ let audioRecorder = {
 
   setIceCandidateCallbacks: (webRtcPeer, webRtcEp, onerror) => {
     webRtcPeer.on('icecandidate', candidate => {
-      console.log('Local candidate:', candidate);
+      log('Local candidate:', candidate);
       candidate = kurentoClient.getComplexType('IceCandidate')(candidate);
       webRtcEp.addIceCandidate(candidate, onerror);
     });
 
     webRtcEp.on('OnIceCandidate', function(event) {
       var candidate = event.candidate;
-      console.log('Remote candidate:', candidate);
+      log('Remote candidate:', candidate);
       webRtcPeer.addIceCandidate(candidate, onerror);
     });
   },
@@ -90,7 +97,7 @@ let audioRecorder = {
 
     co(function *() {
       try {
-        if (!audioRecorder.client) { audioRecorder.client = yield kurentoClient(audioRecorder.wsUri); }
+        if (!audioRecorder.client) { audioRecorder.client = yield kurentoClient(audioRecorder.kmsWsUri); }
 
         // create media pipeline
         audioRecorder.pipeline = yield audioRecorder.client.create('MediaPipeline');
@@ -112,8 +119,11 @@ let audioRecorder = {
         // start recorder
         yield recorder.record();
 
+        log('Getting sdpAnswer...');
         var sdpAnswer = yield webRtc.processOffer(sdpOffer);
+        log('Got sdpAnswer!');
         webRtc.gatherCandidates(audioRecorder.onError);
+        log('Sending sdpAnswer back...');
         audioRecorder.webRtcPeer.processAnswer(sdpAnswer);
 
         audioRecorder.setStatus(audioRecorder.RECORDING);
@@ -126,10 +136,11 @@ let audioRecorder = {
 
   onError: error => {
     if (error) {
-      console.error(error);
+      error(error);
       audioRecorder.stop();
     }
   }
+
 };
 
 export default audioRecorder;
