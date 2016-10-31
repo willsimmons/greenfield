@@ -24,7 +24,7 @@ const Promise = require('bluebird');
 const request = require('request');
 
 // Kurento repository URI
-const KRP_URI = process.env.KRP_URI || 'http://138.197.196.39:7676';
+const KRP_URI = process.env.KRP_URI || 'http://radradio.stream:7676';
 
 const reqGetOptions = id => {
   return {

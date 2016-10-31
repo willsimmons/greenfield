@@ -19,7 +19,9 @@ class Recorder extends React.Component {
       recordId: null,
       recordBtn: '●',
       className: 'round-button-record',
-      status: null,
+      trackInfo: { title: '', description: '', subject: '' },
+      fieldDisabled: false,
+      status: 'IDLE',
       node: null,
       timer: 0,
       timerString: '00:00',
@@ -46,21 +48,20 @@ class Recorder extends React.Component {
     let context = this;
 
     if (!this.state.recordingState) {
-      // FIXME
-      let metadata = { username: 'gilles', title: 'recording test', description: 'party time' };
+      let metadata = this.state.trackInfo;
+      metadata.username = 'gilles'; // FIXME
       let node = this.state.node;
 
       // ask for a new item url for recording
       $.post(url, metadata, data => {
         log('success', data);
-        audioRecorder.start(data.url, node, 'recorder_user');
+        audioRecorder.start(data.url, node, metadata.username);
         context.setState({ recordId: data.id });
         log('setting recordingState true');
         context.setState({
           recordingState: true,
           recordBtn: '■',
-          className: 'round-button-stop',
-          status: 'recording'
+          className: 'round-button-stop'
         });
       });
 
@@ -75,8 +76,7 @@ class Recorder extends React.Component {
       this.setState({
         recordingState: false,
         recordBtn: '●',
-        className: 'round-button-record',
-        status: 'stopped'
+        className: 'round-button-record'
       });
 
       // fetch the item to make sure it got written correctly
@@ -117,6 +117,9 @@ class Recorder extends React.Component {
     this.setState({ status: status });
 
     if (prevStatus !== 'RECORDING' && status === 'RECORDING') {
+      // disable fields
+      this.setState({ fieldDisabled: true });
+      // reset timer
       this.setState({ timer: 0 });
       this.setState({ timerString: this.timerString(0) });
       // start setInterval we start recording
@@ -128,12 +131,32 @@ class Recorder extends React.Component {
       }, 1000);
       this.setState({ setInterval: interval });
     } else if (status !== 'PLAYING') {
+      // enable fields
+      this.setState({ fieldDisabled: false });
       // clear setInterval when we stop recording
       if (this.state.setInterval) {
         clearInterval(this.state.setInterval);
         this.setState({ setInterval: null });
       }
     }
+  }
+
+  updateTitle(e) {
+    let trackInfo = this.state.trackInfo;
+    trackInfo.title = e.target.value;
+    this.setState({ trackInfo: trackInfo });
+  }
+
+  updateDescription(e) {
+    let trackInfo = this.state.trackInfo;
+    trackInfo.description = e.target.value;
+    this.setState({ trackInfo: trackInfo });
+  }
+
+  updateSubject(e) {
+    let trackInfo = this.state.trackInfo;
+    trackInfo.subject = e.target.value;
+    this.setState({ trackInfo: trackInfo });
   }
 
   timerString(timer) {
@@ -145,36 +168,31 @@ class Recorder extends React.Component {
 
     <div className="recorder">
       <h1>Recorder</h1>
-      <div id="viz">
-        <canvas id="analyser" width="1024" height="200"></canvas>
-      </div>
-      <audio controls autoPlay className="audioInput"></audio>
+
       <div className="controls">
         <div className="round-button">
           <div className="round-button-circle">
             <div onClick={this.handleClick.bind(this)} className={this.state.className}>{this.state.recordBtn}</div>
           </div>
         </div>
-        <br></br>
-        <button name="stop">Stop</button>
-        <br></br>
-        <br></br>
-        <button name="otherAction">Other Action</button>
-        <div>TIMER: {this.state.timerString}</div>
-        <div>TEST ID: {this.state.recordId}</div>
-        <div>STATUS: {this.state.status}</div>
+        <div className="control-text">
+          <div>Timer: {this.state.timerString}</div>
+          <div>Track id: {this.state.recordId}</div>
+          <div className="recorder-status">Status: {this.state.status}</div>
+        </div>
       </div>
       <audio controls autoPlay className="audioInput"></audio>
+      <div id="viz">
+        <canvas id="analyser" width="400" height="75"></canvas>
+      </div>
 
-      <div className="meta">
+      <div className={ this.state.fieldDisabled ? 'meta meta-disabled' : 'meta' }>
         <label htmlFor="title">Title</label>
-        <input type="text" id="title"></input>
+        <input type="text" id="title" onChange={this.updateTitle.bind(this)} disabled={this.state.fieldDisabled}></input>
         <label htmlFor="title">Subject</label>
-        <input type="text" id="subject"></input>
-        <label htmlFor="title">Tags</label>
-        <input type="text" id="tags"></input>
+        <input type="text" id="subject" onChange={this.updateSubject.bind(this)} disabled={this.state.fieldDisabled}></input>
         <label htmlFor="desc">Description</label>
-        <input type="text" id="desc"></input>
+        <textarea id="desc" onChange={this.updateDescription.bind(this)} disabled={this.state.fieldDisabled}></textarea>
         <div className="opacityBG2">
         </div>
         <div className="opacityBG1">

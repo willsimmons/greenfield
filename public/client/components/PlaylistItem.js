@@ -15,10 +15,10 @@ class PlaylistItem extends React.Component {
     return (
       <tr className="playlistTableRow">
         <td className="deleteItem" onClick={ () => this.props.deleteItem(this.props.item, this.props.index)}><i className="fa fa-minus-circle" aria-hidden="true"></i></td>
-        <td onClick={ () => this.props.handleClick(this.props.item)}> <strong>{this.props.item.username}</strong> </td>
+        <td onClick={ () => this.props.handleClick(this.props.item)} className="player-item-username"> <strong>{this.props.item.username}</strong> </td>
 				<td onClick={ () => this.props.handleClick(this.props.item)}> {this.props.item.title} </td>
 				<td onClick={ () => this.props.handleClick(this.props.item)}> {this.props.item.description} </td>
-        <td onClick={ () => this.props.handleClick(this.props.item)}> {this.props.item.id} </td>
+        <td onClick={ () => this.props.handleClick(this.props.item)} className="player-item-id"> {this.props.item.id} </td>
         <td onClick={ () => this.props.handleClick(this.props.item)}> {this.timerString(this.props.item.duration)} </td>
 			</tr>
     );

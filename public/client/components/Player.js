@@ -134,13 +134,10 @@ class Player extends React.Component {
               <div onClick={ () => this.handleClick(this.state.currentTrack) } className={this.state.className}>{this.state.playBtn}</div>
             </div>
           </div>
-          <div className="trackInfo">
-            <h2>Track Information</h2>
-            <p>
-              <span><strong>{this.state.currentTrack.username}</strong></span>
-              <span>{this.state.currentTrack.title}</span>
-              <span>{this.state.currentTrack.description}</span>
-            </p>
+          <div className="control-text trackInfo">
+            <div><strong>{this.state.currentTrack.username}</strong></div>
+            <div>{this.state.currentTrack.title}</div>
+            <div>{this.state.currentTrack.description}</div>
           </div>
         </div>
         <audio controls autoPlay className="audioOutput"></audio>

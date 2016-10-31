@@ -19,7 +19,6 @@ render(
 	<Router history={browserHistory}>
 		<Route path="/" component={App}>
 			<IndexRoute component={Home}/>
-			<Route path="navbar" component={NavBar}/>
 			<Route path="login" component={Login}/>
 			<Route path="register" component={Register}/>
 			<Route path="recorder" ws={ws} component={Recorder}/>
