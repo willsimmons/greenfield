@@ -61,14 +61,14 @@ class Recorder extends React.Component {
 
     if (!this.state.recordingState) {
       let metadata = this.state.trackInfo;
-      metadata.username = 'gilles'; // FIXME
+      metadata.user = 'gilles'; // FIXME
       let node = this.state.node;
 
       // ask for a new item url for recording
       createItemRequest = $.post(url, metadata, data => {
         if (!stateAccessible) { return; }
         log('success', data);
-        audioRecorder.start(data.url, node, metadata.username);
+        audioRecorder.start(data.url, node, metadata);
         context.setState({ recordId: data.id });
         log('setting recordingState true');
         context.setState({

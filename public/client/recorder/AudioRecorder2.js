@@ -24,6 +24,7 @@ let audioRecorder = {
   statusUpdate: null,
   audioNode: null,
   user: null,
+  metadata: null,
 
   init: (statusUpdate, ws, processMessage) => {
     audioRecorder.statusUpdate = statusUpdate;
@@ -62,11 +63,17 @@ let audioRecorder = {
     };
   },
 
-  start: (streamId, audioNode, user) => {
+  start: (streamId, audioNode, metadata) => {
     audioRecorder.setStatus(audioRecorder.DISABLED);
     audioRecorder.audioNode = audioNode;
     audioRecorder.streamId = streamId;
-    audioRecorder.user = user;
+    audioRecorder.user = metadata.user;
+    let m = {};
+    m.title = metadata.title;
+    m.subject = metadata.subject;
+    m.description = metadata.description;
+    m.id = metadata.id;
+    audioRecorder.metadata = m;
 
     let options = {
       localVideo: audioRecorder.audioNode,
@@ -120,7 +127,9 @@ let audioRecorder = {
     let message = {
       id: 'broadcaster',
       sdpOffer: sdpOffer,
-      streamId: audioRecorder.streamId // sending recording file url to server
+      streamId: audioRecorder.streamId, // sending recording file url to server
+      user: audioRecorder.user,
+      metadata: audioRecorder.metadata
     };
     audioRecorder.sendMessage(message);
   },
