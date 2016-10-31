@@ -10,6 +10,9 @@ const log = myDebug('Recorder:log');
 const info = myDebug('Recorder:info');
 const error = myDebug('Recorder:error');
 
+let stateAccessible = false;
+let createItemRequest, checkRecordingRequest;
+
 class Recorder extends React.Component {
 
   constructor(props) {
@@ -32,13 +35,22 @@ class Recorder extends React.Component {
 
   componentDidMount() {
     let node = document.getElementsByClassName('audioInput')[0];
+    stateAccessible = true;
     this.setState({ node: node });
     this.init();
     visualizer.initAudio();
   }
 
+  componentWillUnmount() {
+    if (this.state.recordingState) {
+      audioRecorder.stop();
+    }
+    stateAccessible = false;
+    if (createItemRequest) { createItemRequest.abort(); }
+    if (checkRecordingRequest) { checkRecordingRequest.abort(); }
+  }
+
   init() {
-    // FIXME? do we need to add processMessage?
     audioRecorder.init(this.statusUpdate.bind(this), this.state.ws);
     log('init');
   }
@@ -53,7 +65,8 @@ class Recorder extends React.Component {
       let node = this.state.node;
 
       // ask for a new item url for recording
-      $.post(url, metadata, data => {
+      createItemRequest = $.post(url, metadata, data => {
+        if (!stateAccessible) { return; }
         log('success', data);
         audioRecorder.start(data.url, node, metadata.username);
         context.setState({ recordId: data.id });
@@ -81,8 +94,9 @@ class Recorder extends React.Component {
 
       // fetch the item to make sure it got written correctly
       let count = 0;
-      let checkRecording = () =>
-        $.get(`${url}/${id}`, data => {
+      let checkRecording = () => {
+        checkRecordingRequest = $.get(`${url}/${id}`, data => {
+          if (!stateAccessible) { return; }
           // it takes time for the recording to be available, so retry up to 10 times
           if (data.status === 404 && count < 10) {
             count++;
@@ -107,12 +121,14 @@ class Recorder extends React.Component {
             error('error', data);
           }
         });
+      };
       checkRecording();
     }
 
   }
 
   statusUpdate(status) {
+    if (!stateAccessible) { return; }
     let prevStatus = this.state.status;
     this.setState({ status: status });
 
@@ -130,7 +146,7 @@ class Recorder extends React.Component {
         context.setState({ timerString: context.timerString(timer) });
       }, 1000);
       this.setState({ setInterval: interval });
-    } else if (status !== 'PLAYING') {
+    } else if (status !== 'RECORDING') {
       // enable fields
       this.setState({ fieldDisabled: false });
       // clear setInterval when we stop recording

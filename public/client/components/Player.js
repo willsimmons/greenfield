@@ -10,6 +10,10 @@ const log = myDebug('Player:log');
 const info = myDebug('Player:info');
 const error = myDebug('Player:error');
 
+let stateAccessible = false;
+let getRecordingRequests = [];
+let deleteRequest, getRecordingMetadataRequest, getAllRecordingsRequest;
+
 class Player extends React.Component {
 
   constructor(props) {
@@ -28,8 +32,17 @@ class Player extends React.Component {
 
   componentDidMount() {
     let node = document.getElementsByClassName('audioOutput')[0];
+    stateAccessible = true;
     this.setState({ node: node });
     this.init();
+  }
+
+  componentWillUnmount() {
+    stateAccessible = false;
+    getRecordingRequests.map(item => item.abort());
+    if (getAllRecordingsRequest) { getAllRecordingsRequest.abort(); }
+    if (getRecordingMetadataRequest) { getRecordingMetadataRequest.abort(); }
+    if (deleteRequest) { deleteRequest.abort(); }
   }
 
   init() {
@@ -39,20 +52,25 @@ class Player extends React.Component {
 
     let context = this;
     let query = { 'username': '.*' };
-    $.post('/api/recordings', query, data => {
+    getAllRecordingsRequest = $.post('/api/recordings', query, data => {
       log('playlist received');
       let index = 0;
-      data.map(datum => $.get('/api/recording/' + datum, item => {
-        if (!item.status) { // make sure item exists
-          let playlist = this.state.playlist;
-          playlist[index] = item;
-          context.setState({ playlist: playlist });
-          if (index === 0) {
-            context.setState({ currentTrack: playlist[0] });
+      data.map((datum, index) => {
+        if (!stateAccessible) { return; }
+        getRecordingRequests[index] = $.get('/api/recording/' + datum, item => {
+          if (!stateAccessible) { return; }
+          if (!item.status) { // make sure item exists
+            let playlist = this.state.playlist;
+            playlist[index] = item;
+            context.setState({ playlist: playlist });
+            if (index === 0) {
+              context.setState({ currentTrack: playlist[0] });
+            }
+            index++;
           }
-          index++;
-        }
-      }));
+        });
+      }
+    );
     });
   }
 
@@ -76,10 +94,11 @@ class Player extends React.Component {
       if (this.state.status !== 'IDLE') {
         audioPlayer.stop();
       }
-      $.ajax({
+      deleteRequest = $.ajax({
         type: 'DELETE',
         url: `/api/recording/${item.id}`,
         success: () => {
+          if (!stateAccessible) { return; }
           log(`Item ${item.id} deleted from repository`);
           // remove item from playlist
           let playlist = context.state.playlist;
@@ -115,7 +134,8 @@ class Player extends React.Component {
         // to test live streaming
         audioPlayer.start('recorder_user', this.state.node, 'gilles');
       } else {
-        $.get('/api/recording/' + item.id, data => {
+        getRecordingMetadataRequest = $.get('/api/recording/' + item.id, data => {
+          if (!stateAccessible) { return; }
           if (!data.status) {
             audioPlayer.start(data.url, this.state.node, 'gilles');
           }
