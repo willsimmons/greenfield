@@ -12,6 +12,7 @@ import Recorder from 'Recorder';
 import Player from 'Player';
 import $ from 'jquery';
 
+// check for authorization
 const requireAuth = function(nextState, replace, cb) {
   $.get('/verify')
     .error( (err) => {

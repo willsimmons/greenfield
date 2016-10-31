@@ -72,7 +72,7 @@ module.exports = function(app) {
           req.logIn(data, function(err) {
             if (err) { console.error('Error logging in', err); }
             console.log('logged in as', req.body.username);
-            return res.end('/recorder');
+            return res.end('/home');
           }); 
         });
       }
@@ -87,7 +87,7 @@ module.exports = function(app) {
 
   app.get('/logout', (req, res) => {
     req.logout();
-    return res.send('/login');
+    return res.send('/');
   });
 
 };
