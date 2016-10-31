@@ -32,28 +32,26 @@ class Register extends React.Component {
   render() {
     return (
       <div>
-        <h1>Registration Page</h1>
-        <div className="register-form">
-          <form onSubmit={this.addUser} className="registerForm">
-           <div className="registerBox">
-              <div className="registerInput">
-                <label for="username">Username</label>
-                <input type="text" name="username" value={this.state.username}/>
-              </div>
-              <div className="registerInput">
-                <label for="password">Password</label>
-                <input type="text" name="password" value={this.state.password}/>
-              </div>
-              <div className="registerInput">
-                <label for="email">E-mail Address</label>
-                <input type="text" name="email" value={this.state.email}/>
-              </div>
-              <div className="registerInput registerButton">
-                <input type="submit" value="Register"/>
-              </div>
+        <h1>Register</h1>
+        <form onSubmit={this.addUser} className="registerForm">
+         <div className="registerBox">
+            <div className="registerInput">
+              <label htmlFor="username">Username</label>
+              <input type="text" name="username" value={this.state.username}/>
             </div>
-            <div className="opacityBG5"></div>
+            <div className="registerInput">
+              <label htmlFor="password">Password</label>
+              <input type="text" name="password" value={this.state.password}/>
+            </div>
+            <div className="registerInput">
+              <label htmlFor="email">E-mail Address</label>
+              <input type="text" name="email" value={this.state.email}/>
+            </div>
+            <div className="registerInput registerButton">
+              <input type="submit" value="Register"/>
+            </div>
           </div>
+          <div className="opacityBG5"></div>
         </form>
       </div>
     );
