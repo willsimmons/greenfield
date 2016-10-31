@@ -50,9 +50,10 @@ const liveNowUpdate = ws => {
     if (ws && client !== ws) {
       return;
     }
+    info('Sending livenow to client');
     client.send(JSON.stringify({
       id: 'livenow',
-      broadcasters: Object.keys(liveNow).map(key => liveNow[key]) || []
+      broadcasts: Object.keys(liveNow).map(key => liveNow[key]) || []
     }));
   });
 };
@@ -80,6 +81,9 @@ const startWss = server => {
       stop(sessionId);
     });
 
+    // tell listener about broadcasters who are live
+    liveNowUpdate(ws);
+
     ws.on('message', unparsedMessage => {
       let message = JSON.parse(unparsedMessage);
       log('Connection for session ' + sessionId + ' received message ', message);
@@ -105,7 +109,8 @@ const startWss = server => {
             sdpAnswer: sdpAnswer
           }));
 
-          liveNow[sessionId] = broadcasterUser[sessionId];
+          liveNow[sessionId] = { user: broadcasterUser[sessionId], metadata: message.metadata };
+          info('liveNow', liveNow[sessionId]);
           liveNowUpdate(); // update everyone on live broadcasters
         });
 
@@ -131,9 +136,6 @@ const startWss = server => {
             response: 'accepted',
             sdpAnswer: sdpAnswer
           }));
-
-          // tell listener about broadcasters who are live
-          liveNowUpdate(ws);
         });
 
       } else if (message.id === 'stop') {
