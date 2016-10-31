@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "private": true,
   "scripts": {
-    "start": "SSL_PATH=server/keys nodemon server/index.js",
+    "start": "webpack --progress --colors --watch & SSL_PATH=server/keys nodemon server/index.js",
     "webpack": "webpack --progress --colors",
     "webpack-watch": "webpack --progress --colors --watch",
     "test": "live-server --open=./SpecRunner.html --port=8081",
