@@ -5,7 +5,7 @@ import audioRecorder from '../recorder/AudioRecorder2';
 import visualizer from '../visualizer/visualizer';
 
 let myDebug = require('debug');
-myDebug.enable('Recorder:*');
+//myDebug.enable('Recorder:*');
 const log = myDebug('Recorder:log');
 const info = myDebug('Recorder:info');
 const error = myDebug('Recorder:error');
@@ -21,6 +21,9 @@ class Recorder extends React.Component {
       className: 'round-button-record',
       status: null,
       node: null,
+      timer: 0,
+      timerString: '00:00',
+      setInterval: null,
       ws: props.route.ws
     };
   }
@@ -62,7 +65,10 @@ class Recorder extends React.Component {
       });
 
     } else {
-      var id = this.state.recordId; // '58100808e4b0e6f55757ce46';
+      let id = this.state.recordId; // '58100808e4b0e6f55757ce46';
+
+      // get audio duration before we stop
+      let duration = this.state.node.currentTime;
 
       audioRecorder.stop();
       log('setting recordingState false ');
@@ -83,6 +89,20 @@ class Recorder extends React.Component {
             setTimeout(checkRecording, 1000);
           } else if (!data.status) {
             log('success', data);
+            // write audio duration into database
+            let metadata = data;
+            delete metadata.id;
+            delete metadata.url;
+            metadata.duration = duration;
+            $.ajax({
+              type: 'PUT',
+              url: `${url}/${id}`,
+              data: metadata,
+              success: (d, status) => {
+                log('updated duration', d);
+              },
+              error: (req, err) => error(err)
+            });
           } else {
             error('error', data);
           }
@@ -93,7 +113,31 @@ class Recorder extends React.Component {
   }
 
   statusUpdate(status) {
+    let prevStatus = this.state.status;
     this.setState({ status: status });
+
+    if (prevStatus !== 'RECORDING' && status === 'RECORDING') {
+      this.setState({ timer: 0 });
+      this.setState({ timerString: this.timerString(0) });
+      // start setInterval we start recording
+      let context = this;
+      let interval = setInterval(() => {
+        let timer = context.state.timer + 1;
+        context.setState({ timer: timer });
+        context.setState({ timerString: context.timerString(timer) });
+      }, 1000);
+      this.setState({ setInterval: interval });
+    } else if (status !== 'PLAYING') {
+      // clear setInterval when we stop recording
+      if (this.state.setInterval) {
+        clearInterval(this.state.setInterval);
+        this.setState({ setInterval: null });
+      }
+    }
+  }
+
+  timerString(timer) {
+    return new Date(1000 * timer).toISOString().substr(11, 8).replace(/^00:(.*:.*)/, '$1');
   }
 
   render() {
@@ -116,6 +160,7 @@ class Recorder extends React.Component {
         <br></br>
         <br></br>
         <button name="otherAction">Other Action</button>
+        <div>TIMER: {this.state.timerString}</div>
         <div>TEST ID: {this.state.recordId}</div>
         <div>STATUS: {this.state.status}</div>
       </div>

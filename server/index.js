@@ -51,7 +51,7 @@ app.use(expressSession({
   secret: password.phrase,
   resave: true,
   saveUninitialized: false,
-  cookie: { 
+  cookie: {
     secure: false,
     maxAge: 30 * 24 * 60 * 60
   },
@@ -80,7 +80,7 @@ passport.deserializeUser(function(id, done) {
 // passport login schema
 passport.use(new LocalStrategy({
   passReqToCallback: true
-}, 
+},
 function(req, username, password, done) {
   User.findOne(username, function(err, user) {
     if (err) { return done(err); }
@@ -143,7 +143,7 @@ app.post('/api/register', (req, res) => {
           if (err) { console.error('Error logging in', err); }
           console.log('logged in as', req.body.username);
           return res.end('/recorder');
-        }); 
+        });
       });
     }
   });
@@ -161,12 +161,12 @@ app.get('/api/recording/:id', (req, res) =>
 
 // delete recording from id
 app.delete('/api/recording/:id', (req, res) =>
-  mediaRepo.deleteItem(req.params.id).then(data => res.status(200)).catch(err => res.status(500).json(err))
+  mediaRepo.deleteItem(req.params.id).then(() => res.sendStatus(200)).catch(err => res.status(500).json(err))
 );
 
 // update recording metadata from id
 app.put('/api/recording/:id', (req, res) =>
-  mediaRepo.updateItem(req.params.id, req.body).then(data => res.status(200)).catch(err => res.status(500).json(err))
+  mediaRepo.updateItem(req.params.id, req.body).then(() => res.sendStatus(200)).catch(err => res.status(500).json(err))
 );
 
 // get list of recordings (returns list of recording IDs)

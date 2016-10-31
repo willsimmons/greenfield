@@ -302,6 +302,32 @@ h1 {
 .playlistTable td {
 	padding: 2px 10px;
 }
+.playlistTableRow {
+  cursor: pointer;
+  color: #e7ddc9;
+}
+.playlistTableRow:hover {
+  color: #b3e7ff;
+}
+.playlistTableRow .deleteItem {
+  opacity: 0;
+}
+.playlistTableRow:hover .deleteItem {
+  opacity: 1;
+}
+.deleteItem i {
+  color: rgba(200, 0, 0, 0.5);
+  font-size: 120%;
+  display: inline-block;
+  line-height: 50%;
+}
+.deleteItem:hover i {
+  color: rgba(200, 0, 0, 0.95);
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  width: 90%;
+  height: 50%;
+}
 
 /* hide audio player (during recording) */
 .audioInput {
