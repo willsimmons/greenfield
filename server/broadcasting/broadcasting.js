@@ -82,7 +82,7 @@ const startWss = server => {
     });
 
     // tell listener about broadcasters who are live
-    liveNowUpdate(ws);
+    ws.on('open', () => liveNowUpdate(ws));
 
     ws.on('message', unparsedMessage => {
       let message = JSON.parse(unparsedMessage);
@@ -156,6 +156,9 @@ const startWss = server => {
 
       } else if (message.id === 'getPosition') {
         sendPosition(sessionId);
+
+      } else if (message.id === 'livenowreq') {
+        liveNowUpdate(ws);
 
       } else {
         ws.send(JSON.stringify({
@@ -430,7 +433,7 @@ const stop = sessionId => {
     // host is stopping, send stop message to all listeners
     for (let sid in listeners[sessionId]) {
       let lstream = listenerStream[sid];
-      if (lstream.ws) {
+      if (lstream && lstream.ws) {
         info('Sending disconnect to listener on session ' + sid);
         lstream.ws.send(JSON.stringify({
           id: 'stopCommunication'

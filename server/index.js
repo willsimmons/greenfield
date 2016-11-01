@@ -2,7 +2,7 @@
 
 // debug ====================================================================
 const debug = require('debug');
-debug.enable('server:*');
+//debug.enable('server:*');
 const log = debug('server:log');
 const info = debug('server:info');
 const error = debug('server:error');
@@ -16,7 +16,6 @@ const expressSession = require('express-session');
 const MongoStore = require('connect-mongo')(expressSession);
 const passport = require('passport');
 const flash = require('flash');
-// const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const LocalStrategy = require('passport-local').Strategy;
@@ -40,18 +39,18 @@ const Record = require('../database/controllers/record.js');
 // connect to mongoDB database
 mongoose.connect(db.url);
 
-// parse data
+// body parser setup
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 // session management
+app.use(cookieParser());
 app.use(expressSession({
   secret: password.phrase,
   resave: true,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: false, // FIXME: change to true
     maxAge: 30 * 24 * 60 * 60
   },
   store: new MongoStore({

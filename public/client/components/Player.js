@@ -3,7 +3,6 @@ import React from 'react';
 import $ from 'jquery';
 import PlaylistItem from 'PlaylistItem';
 import audioPlayer from '../player/AudioPlayer2';
-import Global from 'react-global';
 
 let myDebug = require('debug');
 //myDebug.enable('Player:*');
@@ -14,23 +13,23 @@ const error = myDebug('Player:error');
 let stateAccessible = false;
 let getRecordingRequests = [];
 let deleteRequest, getRecordingMetadataRequest, getAllRecordingsRequest;
-let wsUri = `wss://${location.hostname}:8443/audio`; // secure websocket URI with server
-let ws = new WebSocket(wsUri);
 
 class Player extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = this.state || {
+    this.state = {
       playId: null,
       playBtn: '▶',
       className: 'round-button-play',
       status: 'IDLE',
       playlist: [],
       broadcasts: [],
-      currentTrack: { username: '', title: '', description: '' },
+      currentTrack: { id: null, username: '', title: '', description: '' },
       node: null,
-      ws: ws
+      // get username from location.pathname, otherwise set to .*
+      userName: props.location.pathname.replace(/^\/player\/(.*)/, '$1').replace('/player', '.*'),
+      ws: props.route.ws
     };
   }
 
@@ -51,38 +50,36 @@ class Player extends React.Component {
 
   init() {
     log('init');
-    let userName = window.location.pathname.slice(window.location.pathname.lastIndexOf('/player') + 8);
-    log('path', userName);
-    if (!userName) { userName = '.*'; }
-    audioPlayer.init(this.statusUpdate.bind(this), ws);
+    info('username', this.state.userName);
 
-    let query = { 'username': userName };
-    $.post('/api/recordings', query, data => {
+    audioPlayer.init(this.statusUpdate.bind(this), this.state.ws, this.processMessage.bind(this));
+
+    let context = this;
+    let query = { 'username': this.state.userName, 'user': this.state.userName }; // double query because we used user/username and the server makes a OR operation with the queries
+    getAllRecordingsRequest = $.post('/api/recordings', query, data => {
       log('playlist received');
-      let index = 0;
       // get live broadcast IDs
       let live = {};
-      this.state.broadcasts.map(item => { live[item.id] = true; });
+      this.state.broadcasts.map(item => { live[item.id] = true; log('live', item.id); });
       // remove live items from the list
       let newData = [];
-      data.map(item => { if (!live[item.id]) { newData.push(item); } });
+      data.map(id => { if (!live[id]) { newData.push(id); } });
       // get recording info
-      data.map((datum, index) => {
+      let playlist = [];
+      newData.map((datum, index) => {
         if (!stateAccessible) { return; }
         getRecordingRequests[index] = $.get('/api/recording/' + datum, item => {
           if (!stateAccessible) { return; }
           if (!item.status) { // make sure item exists
-            let playlist = this.state.playlist;
-            playlist[index] = item;
+            playlist.push(item);
             this.setState({ playlist: playlist });
-            if (index === 0) {
+            if (playlist.length === 1) {
+              info('Setting current track to', playlist[0]);
               this.setState({ currentTrack: playlist[0] });
             }
-            index++;
           }
         });
-      }
-    );
+      });
     });
   }
 
@@ -101,7 +98,7 @@ class Player extends React.Component {
 
   deleteItem(item, index) {
     let context = this;
-    let answer = confirm(`Are you sure you want to delete '${item.title}'?`);
+    let answer = confirm(`Are you sure you want to delete '${item.title}' [${item.id}]?`);
     if (answer) {
       if (this.state.status !== 'IDLE') {
         audioPlayer.stop();

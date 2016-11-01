@@ -68,6 +68,13 @@ let audioPlayer = {
       // send message back to view for further processing
       processMessage && processMessage(parsedMessage);
     };
+
+    // request live now update from server on init
+    audioPlayer.ws.onopen = () => {
+      audioPlayer.ws.send(JSON.stringify({
+        id: 'livenowreq'
+      }));
+    };
   },
 
   start: (streamId, audioNode, user) => {
