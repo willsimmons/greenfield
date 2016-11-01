@@ -11,7 +11,6 @@ import NavBar from 'NavBar';
 import Recorder from 'Recorder';
 import Player from 'Player';
 import $ from 'jquery';
-
 // check for authorization
 const requireAuth = function(nextState, replace, cb) {
   $.get('/verify')
@@ -29,20 +28,21 @@ const requireAuth = function(nextState, replace, cb) {
       cb();
     });
 };
-
 // open websocket
 let wsUri = `wss://${location.hostname}:8443/audio`; // secure websocket URI with server
 let ws = new WebSocket(wsUri);
 
 render(
-	<Router history={browserHistory}>
-		<Route path="/" component={App}>
-			<IndexRoute component={Home}/>
+  <Router history={browserHistory}>
+    <Route path="/" component={App}>
+      <IndexRoute ws={ws} component={Home}/>
       <Route path="navbar" component={NavBar}/>
       <Route path="login" component={Login}/>
       <Route path="register" component={Register}/>
       <Route path="recorder" ws={ws} component={Recorder} onEnter={requireAuth}/>
-      <Route path="player" ws={ws} component={Player} onEnter={requireAuth}/>
+      <Route path="player" ws={ws} component={Player} onEnter={requireAuth}>
+        <Route path="player/:username" component={Player}/>
+      </Route>
     </Route>
     <Route path="*" component={App}>
       <IndexRoute component={Player}/>
