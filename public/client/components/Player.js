@@ -3,6 +3,7 @@ import React from 'react';
 import $ from 'jquery';
 import PlaylistItem from 'PlaylistItem';
 import audioPlayer from '../player/AudioPlayer2';
+import Global from 'react-global';
 
 let myDebug = require('debug');
 //myDebug.enable('Player:*');
@@ -14,11 +15,15 @@ let stateAccessible = false;
 let getRecordingRequests = [];
 let deleteRequest, getRecordingMetadataRequest, getAllRecordingsRequest;
 
+// FIXME
+let wsUri = `wss://${location.hostname}:8443/audio`; // secure websocket URI with server
+let ws = new WebSocket(wsUri);
+
 class Player extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {
+    this.state = this.state || {
       playId: null,
       playBtn: '▶',
       className: 'round-button-play',
@@ -27,7 +32,7 @@ class Player extends React.Component {
       broadcasts: [],
       currentTrack: { username: '', title: '', description: '' },
       node: null,
-      ws: props.route.ws
+      ws: ws
     };
   }
 
@@ -48,11 +53,12 @@ class Player extends React.Component {
 
   init() {
     log('init');
+    let userName = window.location.pathname.slice(window.location.pathname.lastIndexOf('/player') + 8) || '.*';
 
-    audioPlayer.init(this.statusUpdate.bind(this), this.state.ws, this.processMessage.bind(this));
+    audioPlayer.init(this.statusUpdate.bind(this), ws, this.processMessage.bind(this));
 
     let context = this;
-    let query = { 'user': '.*', 'username': '.*' };
+    let query = { 'username': userName, 'user': userName }; // double query because we used user/username and the server makes a OR operation with the queries
     getAllRecordingsRequest = $.post('/api/recordings', query, data => {
       log('playlist received');
       let index = 0;
@@ -70,9 +76,9 @@ class Player extends React.Component {
           if (!item.status) { // make sure item exists
             let playlist = this.state.playlist;
             playlist[index] = item;
-            context.setState({ playlist: playlist });
+            this.setState({ playlist: playlist });
             if (index === 0) {
-              context.setState({ currentTrack: playlist[0] });
+              this.setState({ currentTrack: playlist[0] });
             }
             index++;
           }

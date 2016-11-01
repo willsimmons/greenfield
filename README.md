@@ -2,13 +2,13 @@
 
 Medium for Radio
 
-> insert project description
+radrad.io is a audio recording and listening service through which anyone can easily set up a live radio stream and broadcast to the world instantly. Users are able to live broadcast instantaneously, while also recording their streams for future listening. Listeners are able to message broadcasters as they broadcast live, creating instant feedback for the broadcasters. 
 
 ## Team
 
-  - __Product Owner__: teamMember
-  - __Scrum Master__: teamMember
-  - __Development Team Members__: teamMember, teamMember
+  - __Product Owner__: Eric Eakin
+  - __Scrum Master__: Eugene Choe
+  - __Development Team Members__: JP Zivalich, Gilles Bouvier
 
 ## Table of Contents
 
@@ -22,15 +22,17 @@ Medium for Radio
 
 ## Usage
 
-> Some usage instructions
+```sh
+npm start // starts nodemon express/ssl server
+webpack-watch // starts webpack module manager for dependencies
+mongod // starts mongodb server
+```
 
 ## Requirements
 
-- Node 0.10.x
-- Redis 2.6.x
-- Postgresql 9.1.x
-- etc
-- etc
+- node.js / express
+- mongoDB
+- a computer
 
 ## Development
 

@@ -6,11 +6,14 @@ const userSchema = mongoose.Schema({
     unique: true
   },
   password: String,
-  email: String,
+  picture: String,
+  description: String,
+  station: String,
   following: Array,
   followers: Array,
   recordings: Array,
-  comments: Array
+  comments: Array,
+  tagline: String
 });
 
 const UserModel = mongoose.model('User', userSchema);
