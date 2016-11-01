@@ -79,5 +79,5 @@ class Home extends React.Component {
 }
 Home.contextTypes = {
   router: React.PropTypes.object.isRequired
-}
+};
 export default Home;

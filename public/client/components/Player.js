@@ -54,9 +54,8 @@ class Player extends React.Component {
     let userName = window.location.pathname.slice(window.location.pathname.lastIndexOf('/player') + 8);
     log('path', userName);
     if (!userName) { userName = '.*'; }
-    audioPlayer.init(this.statusUpdate.bind(this), this.state.ws);
+    audioPlayer.init(this.statusUpdate.bind(this), ws);
 
-    let context = this;
     let query = { 'username': userName };
     $.post('/api/recordings', query, data => {
       log('playlist received');
@@ -75,9 +74,9 @@ class Player extends React.Component {
           if (!item.status) { // make sure item exists
             let playlist = this.state.playlist;
             playlist[index] = item;
-            context.setState({ playlist: playlist });
+            this.setState({ playlist: playlist });
             if (index === 0) {
-              context.setState({ currentTrack: playlist[0] });
+              this.setState({ currentTrack: playlist[0] });
             }
             index++;
           }
