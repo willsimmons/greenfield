@@ -2,7 +2,7 @@ import styles from 'style';
 import React from 'react';
 import $ from 'jquery';
 import HomeListItem from 'HomeListItem';
-import Global from 'react-global';
+
 class Home extends React.Component {
 
   constructor(props, context) {

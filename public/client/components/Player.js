@@ -3,7 +3,6 @@ import React from 'react';
 import $ from 'jquery';
 import PlaylistItem from 'PlaylistItem';
 import audioPlayer from '../player/AudioPlayer2';
-import Global from 'react-global';
 
 let myDebug = require('debug');
 //myDebug.enable('Player:*');
