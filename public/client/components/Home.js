@@ -3,6 +3,12 @@ import React from 'react';
 import $ from 'jquery';
 import HomeListItem from 'HomeListItem';
 
+let myDebug = require('debug');
+//myDebug.enable('Home:*');
+const log = myDebug('Home:log');
+const info = myDebug('Home:info');
+const error = myDebug('Home:error');
+
 class Home extends React.Component {
 
   constructor(props, context) {
@@ -56,9 +62,6 @@ class Home extends React.Component {
     return (
       <div className="player">
         <h1>Welcome</h1>
-        <Global values={{
-          ws: this.props.route.ws
-        }}/>
         <div className="homeList">
           <div className="homeListOverlay">
             <h2>Available Stations:</h2>
