@@ -47,8 +47,9 @@ class Home extends React.Component {
   }
 
   handleClick(user) {
-    const path = `/recorder/${user.username}`;
+    const path = `/player/${user.username}`;
     console.log('click', path);
+    this.context.router.push(path);
   }
 
   render() {

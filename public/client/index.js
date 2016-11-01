@@ -29,7 +29,6 @@ const requireAuth = function(nextState, replace, cb) {
       cb();
     });
 };
-
 // open websocket
 let wsUri = `wss://${location.hostname}:8443/audio`; // secure websocket URI with server
 let ws = new WebSocket(wsUri);
@@ -37,7 +36,9 @@ let ws = new WebSocket(wsUri);
 render(
   <Router history={browserHistory}>
     <Route path="/" component={App}>
-      <IndexRoute component={Home}/>
+      <IndexRoute component={Home}>
+        <Route path="player/:username" component={User}/>
+      </IndexRoute>
       <Route path="navbar" component={NavBar}/>
       <Route path="login" component={Login}/>
       <Route path="register" component={Register}/>
