@@ -3,6 +3,7 @@ import React from 'react';
 import $ from 'jquery';
 import PlaylistItem from 'PlaylistItem';
 import audioPlayer from '../player/AudioPlayer2';
+import Global from 'react-global';
 
 let myDebug = require('debug');
 //myDebug.enable('Player:*');
@@ -13,12 +14,14 @@ const error = myDebug('Player:error');
 let stateAccessible = false;
 let getRecordingRequests = [];
 let deleteRequest, getRecordingMetadataRequest, getAllRecordingsRequest;
+let wsUri = `wss://${location.hostname}:8443/audio`; // secure websocket URI with server
+let ws = new WebSocket(wsUri);
 
 class Player extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {
+    this.state = this.state || {
       playId: null,
       playBtn: '▶',
       className: 'round-button-play',
@@ -27,7 +30,7 @@ class Player extends React.Component {
       broadcasts: [],
       currentTrack: { username: '', title: '', description: '' },
       node: null,
-      ws: props.route.ws
+      ws: ws
     };
   }
 
@@ -51,7 +54,7 @@ class Player extends React.Component {
     let userName = window.location.pathname.slice(window.location.pathname.lastIndexOf('/player') + 8);
     log('path', userName);
     if (!userName) { userName = '.*'; }
-    // audioPlayer.init(this.statusUpdate.bind(this), this.state.ws);
+    audioPlayer.init(this.statusUpdate.bind(this), this.state.ws);
 
     let context = this;
     let query = { 'username': userName };

@@ -2,13 +2,13 @@ import styles from 'style';
 import React from 'react';
 import $ from 'jquery';
 import HomeListItem from 'HomeListItem';
-
+import Global from 'react-global';
 class Home extends React.Component {
 
   constructor(props, context) {
     super(props, context);
     context.router;
-    console.log('route', context.router);
+    console.log('props', props);
     this.state = {
       recordingState: false,
       recordId: null,
@@ -48,7 +48,7 @@ class Home extends React.Component {
 
   handleClick(user) {
     const path = `/player/${user.username}`;
-    console.log('click', path);
+    console.log('ROute', this.context);
     this.context.router.push(path);
   }
 
@@ -56,7 +56,9 @@ class Home extends React.Component {
     return (
       <div className="player">
         <h1>Welcome</h1>
-
+        <Global values={{
+          ws: this.props.route.ws
+        }}/>
         <div className="homeList">
           <div className="homeListOverlay">
             <h2>Available Stations:</h2>

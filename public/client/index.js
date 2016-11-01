@@ -11,7 +11,6 @@ import NavBar from 'NavBar';
 import Recorder from 'Recorder';
 import Player from 'Player';
 import $ from 'jquery';
-
 // check for authorization
 const requireAuth = function(nextState, replace, cb) {
   $.get('/verify')
@@ -36,9 +35,7 @@ let ws = new WebSocket(wsUri);
 render(
   <Router history={browserHistory}>
     <Route path="/" component={App}>
-      <IndexRoute component={Home}>
-        <Route path="player/:username" ws={ws} component={User}/>
-      </IndexRoute>
+      <IndexRoute ws={ws} component={Home}/>
       <Route path="navbar" component={NavBar}/>
       <Route path="login" component={Login}/>
       <Route path="register" component={Register}/>
