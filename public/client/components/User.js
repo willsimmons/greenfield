@@ -10,7 +10,7 @@ const log = myDebug('Player:log');
 const info = myDebug('Player:info');
 const error = myDebug('Player:error');
 
-class Player extends React.Component {
+class User extends React.Component {
 
   constructor(props) {
     super(props);
@@ -34,7 +34,8 @@ class Player extends React.Component {
 
   init() {
     log('init');
-
+    const userName = window.location.pathname.slice(window.location.pathname.lastIndexOf('/') + 1);
+    log('path', userName);
     audioPlayer.init(this.statusUpdate.bind(this), this.state.ws);
 
     let context = this;
@@ -145,4 +146,4 @@ class Player extends React.Component {
   }
 }
 
-export default Player;
+export default User;

@@ -48,12 +48,14 @@ class Player extends React.Component {
 
   init() {
     log('init');
-
-    audioPlayer.init(this.statusUpdate.bind(this), this.state.ws, this.processMessage.bind(this));
+    let userName = window.location.pathname.slice(window.location.pathname.lastIndexOf('/player') + 8);
+    log('path', userName);
+    if (!userName) { userName = '.*'; }
+    // audioPlayer.init(this.statusUpdate.bind(this), this.state.ws);
 
     let context = this;
-    let query = { 'username': '.*' };
-    getAllRecordingsRequest = $.post('/api/recordings', query, data => {
+    let query = { 'username': userName };
+    $.post('/api/recordings', query, data => {
       log('playlist received');
       let index = 0;
       // get live broadcast IDs

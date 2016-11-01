@@ -37,7 +37,7 @@ render(
   <Router history={browserHistory}>
     <Route path="/" component={App}>
       <IndexRoute component={Home}>
-        <Route path="player/:username" component={User}/>
+        <Route path="player/:username" ws={ws} component={User}/>
       </IndexRoute>
       <Route path="navbar" component={NavBar}/>
       <Route path="login" component={Login}/>

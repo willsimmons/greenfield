@@ -26,8 +26,8 @@ class Home extends React.Component {
 
   init() {
     var fakeData = [
-      {username: 'AllTheSingleLadies', pic: 'client/img/user1.jpg', description: 'Real Relationship Talk', id: 1},
-      {username: 'JumpinJoe', pic: 'client/img/user2.jpg', description: 'Hollywoods portrayal of the African American', id: 2},
+      {username: 'gilles', pic: 'client/img/user1.jpg', description: 'Real Relationship Talk', id: 1},
+      {username: 'ERIC', pic: 'client/img/user2.jpg', description: 'Hollywoods portrayal of the African American', id: 2},
       {username: 'First2Break', pic: 'client/img/user3.jpg', description: 'Basketball Highlights', id: 3},
       {username: 'BooksForKids', pic: 'client/img/user4.jpg', description: 'Reading books to kids made fun!', id: 4},
       {username: 'TheHeatbeatPodcast', pic: 'client/img/user5.jpg', description: 'Fans get hot talking about Miami Heat', id: 5},
