@@ -10,7 +10,9 @@
     "webpack": "webpack --progress --colors",
     "webpack-watch": "webpack --progress --colors --watch",
     "test": "live-server --open=./SpecRunner.html --port=8081",
-    "postinstall": "curl -s https://raw.githubusercontent.com/reactorcore/pomander/master/bin/install | bash; cd public && bower install"
+    "postinstall": "curl -s https://raw.githubusercontent.com/reactorcore/pomander/master/bin/install | bash; cd public && bower install",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "dependencies": {
     "adapter": "0.0.1",
@@ -38,7 +40,8 @@
     "request": "^2.76.0",
     "underscore": "^1.8.3",
     "utf-8-validate": "^1.2.1",
-    "ws": "^1.1.1"
+    "ws": "^1.1.1",
+    "snyk": "^1.189.0"
   },
   "devDependencies": {
     "babel-cli": "^6.6.5",
@@ -61,5 +64,6 @@
     "supertest": "^2.0.1",
     "webpack": "^1.12.13",
     "webpack-dev-server": "^1.16.2"
-  }
+  },
+  "snyk": true
 }
